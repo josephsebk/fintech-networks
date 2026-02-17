@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>{{ sector_name }} Founder Networks</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #0a0b0e;
+  --surface: #13151a;
+  --surface2: #1a1d24;
+  --border: #2a2d35;
+  --text: #e8e9ec;
+  --text2: #9ca0ab;
+  --accent: #f5a623;
+  --accent2: #e8432a;
+  --green: #34d399;
+  --blue: #60a5fa;
+  --purple: #a78bfa;
+  --pink: #f472b6;
+  --coral: #fb7185;
+}
+* { margin:0; padding:0; box-sizing:border-box; }
+body {
+  font-family: 'DM Sans', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+}
+.header {
+  padding: 48px 40px 32px;
+  border-bottom: 1px solid var(--border);
+  background: linear-gradient(180deg, #111318 0%, var(--bg) 100%);
+}
+.header h1 {
+  font-family: 'DM Serif Display', serif;
+  font-size: 36px;
+  letter-spacing: -0.5px;
+  margin-bottom: 8px;
+}
+.header h1 span { color: var(--accent); }
+.header .subtitle { color: var(--text2); font-size: 15px; line-height: 1.5; max-width: 700px; }
+.stats-bar {
+  display: flex; gap: 32px; margin-top: 16px;
+}
+.stat { font-family: 'JetBrains Mono', monospace; }
+.stat-value { font-size: 28px; font-weight: 700; color: var(--accent); }
+.stat-label { font-size: 12px; color: var(--text2); text-transform: uppercase; letter-spacing: 1px; }
+
+.tabs {
+  display: flex; gap: 0; padding: 0 40px;
+  border-bottom: 1px solid var(--border);
+  overflow-x: auto; background: var(--bg);
+  position: sticky; top: 0; z-index: 100;
+}
+.tab {
+  padding: 14px 20px; font-size: 13px; font-weight: 600;
+  color: var(--text2); cursor: pointer;
+  border-bottom: 2px solid transparent;
+  white-space: nowrap; transition: all 0.2s;
+}
+.tab:hover { color: var(--text); }
+.tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+
+.content { padding: 32px 40px; max-width: 1400px; }
+.panel { display: none; }
+.panel.active { display: block; }
+
+.section-title {
+  font-family: 'DM Serif Display', serif;
+  font-size: 24px; margin-bottom: 8px;
+}
+.section-desc { color: var(--text2); font-size: 14px; margin-bottom: 24px; line-height: 1.5; }
+
+/* Bar Charts */
+.bar-chart { margin-bottom: 32px; }
+.bar-row { display: flex; align-items: center; margin-bottom: 8px; gap: 12px; }
+.bar-label { width: 180px; font-size: 13px; font-weight: 600; text-align: right; flex-shrink: 0; }
+.bar-track { flex: 1; height: 32px; background: var(--surface); border-radius: 4px; overflow: hidden; }
+.bar-fill { height: 100%; border-radius: 4px; display: flex; align-items: center; padding-left: 12px;
+  font-family: 'JetBrains Mono', monospace; font-size: 13px; font-weight: 600; color: #fff;
+  transition: width 0.6s ease; }
+
+/* Insight cards */
+.insight-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(380px, 1fr)); gap: 16px; }
+.insight-card {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 8px; padding: 20px;
+}
+.insight-card .cat {
+  font-size: 11px; text-transform: uppercase; letter-spacing: 1px;
+  color: var(--accent); margin-bottom: 8px; font-weight: 600;
+}
+.insight-card h3 { font-size: 16px; margin-bottom: 8px; }
+.insight-card p { font-size: 13px; color: var(--text2); line-height: 1.5; }
+
+/* Cluster cards */
+.cluster-card {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 8px; padding: 20px; margin-bottom: 16px;
+}
+.cluster-card h3 { font-size: 16px; margin-bottom: 8px; color: var(--accent); }
+.cluster-members { font-size: 13px; color: var(--text2); line-height: 1.6; }
+
+/* Flow table */
+.flow-table { width: 100%; border-collapse: collapse; margin-bottom: 24px; }
+.flow-table th {
+  text-align: left; padding: 10px 16px; font-size: 12px;
+  text-transform: uppercase; letter-spacing: 1px; color: var(--text2);
+  border-bottom: 1px solid var(--border);
+}
+.flow-table td {
+  padding: 10px 16px; font-size: 13px; border-bottom: 1px solid var(--border);
+}
+.flow-table tr:hover { background: var(--surface); }
+
+/* Matrix table */
+.matrix-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.matrix-table th {
+  text-align: left; padding: 10px 12px; font-size: 11px;
+  text-transform: uppercase; letter-spacing: 1px; color: var(--text2);
+  border-bottom: 2px solid var(--border); position: sticky; top: 48px;
+  background: var(--bg); z-index: 50;
+}
+.matrix-table td { padding: 10px 12px; border-bottom: 1px solid var(--border); vertical-align: top; }
+.matrix-table tr:hover { background: var(--surface); }
+.verified-badge {
+  display: inline-block; font-size: 10px; padding: 2px 6px;
+  background: rgba(52,211,153,0.15); color: var(--green);
+  border-radius: 3px; margin-left: 4px; font-weight: 600;
+}
+
+/* Centrality table */
+.centrality-table { width: 100%; border-collapse: collapse; }
+.centrality-table th {
+  text-align: left; padding: 10px 16px; font-size: 12px;
+  text-transform: uppercase; letter-spacing: 1px; color: var(--text2);
+  border-bottom: 1px solid var(--border);
+}
+.centrality-table td { padding: 10px 16px; font-size: 13px; border-bottom: 1px solid var(--border); }
+.centrality-bar {
+  height: 8px; background: var(--accent); border-radius: 4px;
+  display: inline-block; vertical-align: middle;
+}
+
+@media (max-width: 768px) {
+  .header { padding: 24px 16px; }
+  .header h1 { font-size: 24px; }
+  .tabs { padding: 0 16px; }
+  .content { padding: 20px 16px; }
+  .stats-bar { flex-wrap: wrap; gap: 16px; }
+  .bar-label { width: 120px; font-size: 12px; }
+  .insight-grid { grid-template-columns: 1fr; }
+}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1><span>{{ sector_name }}</span> Founder Networks</h1>
+  <p class="subtitle">Automated founder network analysis powered by Tracxn data pipeline. Mapping education, employment, and co-founding relationships across the ecosystem.</p>
+  <div class="stats-bar">
+    <div class="stat">
+      <div class="stat-value">{{ total_companies }}</div>
+      <div class="stat-label">Companies</div>
+    </div>
+    <div class="stat">
+      <div class="stat-value">{{ total_founders }}</div>
+      <div class="stat-label">Founders</div>
+    </div>
+    <div class="stat">
+      <div class="stat-value">{{ edu_hubs | length }}</div>
+      <div class="stat-label">Institutions Tracked</div>
+    </div>
+    <div class="stat">
+      <div class="stat-value">{{ clusters | length }}</div>
+      <div class="stat-label">Clusters Detected</div>
+    </div>
+  </div>
+</div>
+
+<div class="tabs">
+  <div class="tab active" onclick="showTab('insights')">Key Insights</div>
+  <div class="tab" onclick="showTab('education')">Education Hubs</div>
+  <div class="tab" onclick="showTab('employers')">Employer Pipelines</div>
+  <div class="tab" onclick="showTab('clusters')">Founder Clusters</div>
+  <div class="tab" onclick="showTab('flows')">Talent Flows</div>
+  <div class="tab" onclick="showTab('centrality')">Network Connectors</div>
+  <div class="tab" onclick="showTab('geo')">Geography</div>
+  <div class="tab" onclick="showTab('matrix')">Full Matrix</div>
+</div>
+
+<div class="content">
+
+  <!-- KEY INSIGHTS -->
+  <div id="panel-insights" class="panel active">
+    <h2 class="section-title">Top Insights</h2>
+    <p class="section-desc">Ranked findings from network analysis — education hubs, employer mafias, bridge founders, and cluster patterns.</p>
+    <div class="insight-grid">
+      {% for ins in insights %}
+      <div class="insight-card">
+        <div class="cat">{{ ins.category | replace('_', ' ') }}</div>
+        <h3>{{ ins.title }}</h3>
+        <p>{{ ins.detail }}</p>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+
+  <!-- EDUCATION HUBS -->
+  <div id="panel-education" class="panel">
+    <h2 class="section-title">Education Hubs</h2>
+    <p class="section-desc">Institutions ranked by number of founders produced in this sector.</p>
+    <div class="bar-chart" id="edu-chart"></div>
+  </div>
+
+  <!-- EMPLOYER PIPELINES -->
+  <div id="panel-employers" class="panel">
+    <h2 class="section-title">Employer Pipelines</h2>
+    <p class="section-desc">Prior employers ranked by number of founders they spawned.</p>
+    <div class="bar-chart" id="emp-chart"></div>
+  </div>
+
+  <!-- FOUNDER CLUSTERS -->
+  <div id="panel-clusters" class="panel">
+    <h2 class="section-title">Founder Clusters</h2>
+    <p class="section-desc">Tightly connected groups detected via community analysis — potential "mafias" with shared education, employers, or co-founding history.</p>
+    <div id="clusters-list"></div>
+  </div>
+
+  <!-- TALENT FLOWS -->
+  <div id="panel-flows" class="panel">
+    <h2 class="section-title">Employer → Company Flows</h2>
+    <p class="section-desc">Tracing how talent moves from established companies to founding new startups.</p>
+    <table class="flow-table">
+      <thead>
+        <tr><th>From</th><th>To</th><th>Founders</th><th>#</th></tr>
+      </thead>
+      <tbody id="flows-body"></tbody>
+    </table>
+  </div>
+
+  <!-- CENTRALITY / CONNECTORS -->
+  <div id="panel-centrality" class="panel">
+    <h2 class="section-title">Network Connectors</h2>
+    <p class="section-desc">Founders ranked by betweenness centrality — these individuals bridge multiple networks and clusters.</p>
+    <table class="centrality-table">
+      <thead>
+        <tr><th>Rank</th><th>Founder</th><th>Centrality</th><th></th></tr>
+      </thead>
+      <tbody id="centrality-body"></tbody>
+    </table>
+  </div>
+
+  <!-- GEOGRAPHY -->
+  <div id="panel-geo" class="panel">
+    <h2 class="section-title">Geographic Distribution</h2>
+    <p class="section-desc">Company headquarters by city.</p>
+    <div class="bar-chart" id="geo-chart"></div>
+  </div>
+
+  <!-- FULL MATRIX -->
+  <div id="panel-matrix" class="panel">
+    <h2 class="section-title">Full Founder Matrix</h2>
+    <p class="section-desc">{{ total_founders }} founders across {{ total_companies }} companies.</p>
+    <table class="matrix-table">
+      <thead>
+        <tr><th>Founder</th><th>Company</th><th>Education</th><th>Prior Work</th><th>Status</th></tr>
+      </thead>
+      <tbody id="matrix-body"></tbody>
+    </table>
+  </div>
+
+</div>
+
+<script>
+// Tab switching
+function showTab(id) {
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('panel-' + id).classList.add('active');
+  event.target.classList.add('active');
+}
+
+// Data from pipeline
+const eduHubs = {{ edu_hubs_json }};
+const empPipes = {{ employer_pipes_json }};
+const centrality = {{ centrality_json }};
+const clusters = {{ clusters_json }};
+const flows = {{ flows_json }};
+const geo = {{ geo_json }};
+const matrixData = {{ matrix_json }};
+
+// Color palette
+const colors = ['#f5a623','#60a5fa','#34d399','#a78bfa','#f472b6','#fb7185','#e8432a','#fbbf24','#818cf8','#6ee7b7'];
+
+// Render bar chart
+function renderBars(containerId, data, labelKey, valueKey, maxVal) {
+  const container = document.getElementById(containerId);
+  if (!container || !data.length) return;
+  const mx = maxVal || Math.max(...data.map(d => d[valueKey]));
+  container.innerHTML = data.map((d, i) => {
+    const pct = Math.round((d[valueKey] / mx) * 100);
+    const color = colors[i % colors.length];
+    return `<div class="bar-row">
+      <div class="bar-label">${d[labelKey]}</div>
+      <div class="bar-track">
+        <div class="bar-fill" style="width:${pct}%;background:${color}">${d[valueKey]}</div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+renderBars('edu-chart', eduHubs, 'institution', 'founder_count');
+renderBars('emp-chart', empPipes, 'employer', 'founder_count');
+renderBars('geo-chart', geo, 'city', 'count');
+
+// Render clusters
+const clustersList = document.getElementById('clusters-list');
+if (clustersList) {
+  clustersList.innerHTML = clusters.map((c, i) => {
+    const ctx = c.dominant_context.map(d => `${d.entity} (${d.count})`).join(', ');
+    return `<div class="cluster-card">
+      <h3>Cluster ${i+1} — ${c.size} founders</h3>
+      <p style="font-size:12px;color:var(--text2);margin-bottom:8px">Dominant context: ${ctx}</p>
+      <div class="cluster-members">${c.members.join(' · ')}</div>
+    </div>`;
+  }).join('');
+}
+
+// Render flows
+const flowsBody = document.getElementById('flows-body');
+if (flowsBody) {
+  flowsBody.innerHTML = flows.map(f =>
+    `<tr><td><strong>${f.from_employer}</strong></td><td>${f.to_company}</td><td style="color:var(--text2)">${f.founders.join(', ')}</td><td><strong>${f.count}</strong></td></tr>`
+  ).join('');
+}
+
+// Render centrality
+const centralityBody = document.getElementById('centrality-body');
+if (centralityBody && centrality.length) {
+  const maxC = centrality[0].centrality || 1;
+  centralityBody.innerHTML = centrality.map((c, i) => {
+    const barW = Math.round((c.centrality / maxC) * 200);
+    return `<tr><td>${i+1}</td><td><strong>${c.name}</strong></td><td style="font-family:'JetBrains Mono',monospace">${c.centrality}</td><td><span class="centrality-bar" style="width:${barW}px"></span></td></tr>`;
+  }).join('');
+}
+
+// Render matrix
+const matrixBody = document.getElementById('matrix-body');
+matrixData.forEach(d => {
+  const badge = d.verified ? '<span class="verified-badge">VERIFIED</span>' : '';
+  matrixBody.innerHTML += `<tr>
+    <td><strong>${d.name}</strong>${badge}</td>
+    <td>${d.company}</td>
+    <td>${d.edu}</td>
+    <td>${d.work}</td>
+    <td>${d.verified ? 'Manual + Verified' : 'Tracxn'}</td>
+  </tr>`;
+});
+</script>
+</body>
+</html>

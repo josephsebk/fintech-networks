@@ -1,0 +1,12 @@
+.env
+__pycache__/
+*.pyc
+data/raw/*.json
+data/processed/*.json
+data/processed/*.csv
+output/*.html
+*.egg-info/
+dist/
+build/
+.venv/
+venv/

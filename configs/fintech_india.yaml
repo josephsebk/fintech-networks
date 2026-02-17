@@ -1,0 +1,50 @@
+# Sector configuration: Indian FinTech
+# This is the original sector from your dashboard — now machine-readable.
+
+name: "Indian FinTech"
+sector: "FinTech"
+country: "India"
+description: "Indian FinTech unicorns and soonicorns — founder network mapping"
+
+# Tracxn API filters
+filters:
+  min_funding: 10000000    # $10M+ funded companies
+  founded_after: 2005
+  limit: 200
+  enrich_domains: false    # set true if you want per-company detail lookups (slower)
+
+# Key institutions to tag and track
+tracked_institutions:
+  - "IIT Delhi"
+  - "IIT Bombay"
+  - "IIT Kharagpur"
+  - "IIT Kanpur"
+  - "IIT Roorkee"
+  - "IIT Madras"
+  - "BITS Pilani"
+  - "IIM Ahmedabad"
+  - "IIM Bangalore"
+  - "IIM Calcutta"
+  - "ISB Hyderabad"
+  - "DCE/DTU"
+  - "Delhi University"
+  - "NSIT"
+
+# Key employers to track for mafia analysis
+tracked_employers:
+  - "Flipkart"
+  - "ICICI Bank"
+  - "Google"
+  - "McKinsey"
+  - "Citrus Payment"
+  - "Paytm"
+  - "Amazon"
+  - "Goldman Sachs"
+  - "Morgan Stanley"
+  - "Deutsche Bank"
+
+# Analysis parameters
+analysis:
+  min_cluster_size: 3
+  top_n_hubs: 15
+  top_n_bridges: 10
