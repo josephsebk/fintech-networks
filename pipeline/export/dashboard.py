@@ -71,10 +71,12 @@ def generate_dashboard(
         })
 
     # Template context
+    total_edges = analyser.graph.number_of_edges() if analyser.graph else 0
     context = {
         "sector_name": sector_name,
         "total_companies": len(companies),
         "total_founders": len(founders),
+        "total_edges": total_edges,
         "matrix_data": matrix_data,
         "matrix_json": json.dumps(matrix_data, default=str),
         "edu_hubs": edu_hubs,
@@ -100,7 +102,7 @@ def generate_dashboard(
         ),
     }
 
-    env = Environment(loader=FileSystemLoader(str(TEMPLATE_DIR)), autoescape=True)
+    env = Environment(loader=FileSystemLoader(str(TEMPLATE_DIR)), autoescape=False)
     template = env.get_template("dashboard.html")
     html = template.render(**context)
 
