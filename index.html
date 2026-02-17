@@ -315,13 +315,13 @@ body {
 </div>
 
 <div class="tabs">
-  <div class="tab active" onclick="showTab('colleges')">🎓 College Networks</div>
-  <div class="tab" onclick="showTab('employers')">🏢 Prior Employers</div>
-  <div class="tab" onclick="showTab('mafias')">🔗 Founder Mafias</div>
-  <div class="tab" onclick="showTab('geography')">📍 Geography</div>
-  <div class="tab" onclick="showTab('corrections')">⚠️ Corrections Log</div>
-  <div class="tab" onclick="showTab('insights')">💡 Key Insights</div>
-  <div class="tab" onclick="showTab('matrix')">📊 Full Matrix</div>
+  <div class="tab active" onclick="showTab('colleges', this)">🎓 College Networks</div>
+  <div class="tab" onclick="showTab('employers', this)">🏢 Prior Employers</div>
+  <div class="tab" onclick="showTab('mafias', this)">🔗 Founder Mafias</div>
+  <div class="tab" onclick="showTab('geography', this)">📍 Geography</div>
+  <div class="tab" onclick="showTab('corrections', this)">⚠️ Corrections Log</div>
+  <div class="tab" onclick="showTab('insights', this)">💡 Key Insights</div>
+  <div class="tab" onclick="showTab('matrix', this)">📊 Full Matrix</div>
 </div>
 
 <div class="content">
@@ -799,11 +799,11 @@ body {
 </div>
 
 <script>
-function showTab(id) {
+function showTab(id, el) {
   document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
   document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
   document.getElementById('panel-' + id).classList.add('active');
-  event.target.classList.add('active');
+  el.classList.add('active');
 }
 
 // Matrix data — verified
