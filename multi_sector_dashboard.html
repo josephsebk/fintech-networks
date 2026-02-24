@@ -1,0 +1,586 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Founder Networks</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Sans:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<style>
+:root {
+  --bg:#F8F7F4;--surface:#FFFFFF;--text-primary:#1C2434;--text-secondary:#5C6B7F;
+  --accent-gold:#C29D47;--accent-gold-bg:#F9F3E5;--accent-blue:#2B4C7E;
+  --border:#E6E8EC;--card-shadow:0 1px 3px rgba(0,0,0,0.04);
+}
+body{background:var(--bg);color:var(--text-primary);font-family:'DM Sans',sans-serif;-webkit-font-smoothing:antialiased;min-height:100dvh}
+h1,h2,h3,.serif{font-family:'DM Serif Display',serif}
+.mono{font-family:'JetBrains Mono',monospace}
+.side-link{display:flex;align-items:center;gap:12px;padding:10px 16px;border-radius:10px;font-size:14px;font-weight:500;color:var(--text-secondary);cursor:pointer;transition:all .2s}
+.side-link:hover{background:#EFEDE9;color:var(--text-primary)}
+.side-link.active{background:var(--surface);color:var(--text-primary);box-shadow:0 1px 3px rgba(0,0,0,.06)}
+.stat-card{background:var(--surface);padding:24px;border-radius:16px;border:1px solid var(--border);transition:all .3s}
+.stat-card:hover{box-shadow:0 8px 24px rgba(0,0,0,.06);transform:translateY(-2px)}
+.ptable{width:100%;border-collapse:separate;border-spacing:0}
+.ptable th{text-align:left;padding:14px 20px;color:var(--text-secondary);font-weight:500;font-size:11px;text-transform:uppercase;letter-spacing:.08em;border-bottom:1px solid var(--border);background:var(--surface)}
+.ptable td{padding:16px 20px;border-bottom:1px solid var(--border);font-size:14px;vertical-align:middle;transition:background .2s}
+.ptable tr:hover td{background:#FBFBFA}
+.ptable tr:last-child td{border-bottom:none}
+.pill{display:inline-flex;padding:3px 10px;border-radius:999px;font-size:11px;font-weight:600;letter-spacing:.02em;line-height:1.4}
+.pill-gold{background:var(--accent-gold-bg);color:#8F6B1E}
+.pill-gray{background:#F3F4F6;color:var(--text-secondary);border:1px solid #E5E7EB}
+.pill-blue{background:#EBF1F8;color:var(--accent-blue)}
+.pill-green{background:#E6F6EC;color:#0E6245}
+.pill-purple{background:#F3EEFB;color:#6B3FA0}
+.pill-rose{background:#FFF1F2;color:#9F1239}
+.tab-content{display:none}.tab-content.active{display:block}
+.insight-card{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:28px;transition:all .3s}
+.insight-card:hover{box-shadow:0 4px 16px rgba(0,0,0,.06)}
+.network-card{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:24px;transition:all .3s}
+.network-card:hover{box-shadow:0 4px 16px rgba(0,0,0,.06)}
+.no-scrollbar::-webkit-scrollbar{display:none}
+.no-scrollbar{-ms-overflow-style:none;scrollbar-width:none}
+.bar-bg{height:8px;background:#F1F1EF;border-radius:99px;overflow:hidden}
+.bar-fill{height:100%;border-radius:99px;transition:width .6s ease}
+.verified-badge{display:inline-flex;padding:2px 8px;border-radius:999px;font-size:10px;font-weight:600;background:#E6F6EC;color:#0E6245;letter-spacing:.02em}
+
+/* Sector selector */
+.sector-chip{display:inline-flex;align-items:center;gap:5px;padding:5px 10px;border-radius:8px;font-size:12px;font-weight:500;color:var(--text-secondary);cursor:pointer;transition:all .15s;border:1px solid transparent;user-select:none}
+.sector-chip:hover{background:#EFEDE9;color:var(--text-primary)}
+.sector-chip.active{background:var(--accent-gold-bg);color:#8F6B1E;border-color:#E8DAB2;font-weight:600}
+.sector-chip.disabled{opacity:.35;cursor:default;pointer-events:none}
+.sector-chip .material-symbols-outlined{font-size:14px}
+
+/* Mobile sector selector */
+.sector-scroll{display:flex;gap:6px;overflow-x:auto;padding-bottom:2px}
+.sector-scroll::-webkit-scrollbar{display:none}
+.sector-scroll{-ms-overflow-style:none;scrollbar-width:none}
+
+/* Empty state */
+.empty-state{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:80px 24px;text-align:center}
+.empty-state .material-symbols-outlined{font-size:48px;color:var(--border);margin-bottom:16px}
+</style>
+</head>
+<body>
+<div class="lg:grid lg:grid-cols-[264px_1fr] min-h-screen">
+
+<!-- SIDEBAR -->
+<aside class="hidden lg:flex flex-col bg-[#F4F2EE] border-r border-[#E6E4DF] h-screen sticky top-0 overflow-y-auto px-5 py-7">
+<div class="mb-6">
+<h1 class="serif text-[22px] text-[var(--text-primary)] tracking-tight leading-tight">Founder<br/>Networks</h1>
+<p class="text-[10px] text-[var(--text-secondary)] mt-2 font-semibold tracking-[.15em] uppercase">Investor Intelligence &middot; 2026</p>
+</div>
+
+<!-- SECTOR SELECTOR -->
+<div class="mb-6">
+<p class="text-[10px] font-bold text-[var(--text-secondary)] uppercase tracking-[.12em] mb-2.5 px-1">Sector</p>
+<div class="flex flex-wrap gap-1.5" id="sector-nav"></div>
+</div>
+
+<div class="h-px bg-[#E6E4DF] mb-5"></div>
+
+<nav class="space-y-1 flex-1" id="sidebar-nav">
+<div class="side-link active" data-tab="insights"><span class="material-symbols-outlined text-[18px]">lightbulb</span>Key Insights</div>
+<div class="side-link" data-tab="education"><span class="material-symbols-outlined text-[18px]">account_balance</span>Education Hubs</div>
+<div class="side-link" data-tab="employers"><span class="material-symbols-outlined text-[18px]">corporate_fare</span>Employer Pipelines</div>
+<div class="side-link" data-tab="clusters"><span class="material-symbols-outlined text-[18px]">hub</span>Founder Clusters</div>
+<div class="side-link" data-tab="flows"><span class="material-symbols-outlined text-[18px]">swap_horiz</span>Talent Flows</div>
+<div class="side-link" data-tab="centrality"><span class="material-symbols-outlined text-[18px]">share</span>Network Connectors</div>
+<div class="side-link" data-tab="geo"><span class="material-symbols-outlined text-[18px]">location_on</span>Geography</div>
+<div class="side-link" data-tab="matrix"><span class="material-symbols-outlined text-[18px]">table_chart</span>Full Matrix</div>
+</nav>
+<div class="pt-6 mt-6 border-t border-[#E6E4DF]">
+<div class="flex items-center gap-2 mb-2 text-[10px] font-bold text-emerald-700 bg-emerald-50 px-3 py-1.5 rounded-full w-fit"><span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>PIPELINE DATA</div>
+<p class="text-[11px] text-[var(--text-secondary)] leading-relaxed">Source: Tracxn + Verified<br>Last updated Feb 2026</p>
+</div>
+</aside>
+
+<!-- MOBILE NAV -->
+<div class="lg:hidden sticky top-0 z-40 bg-[var(--bg)] border-b border-[var(--border)]">
+<div class="px-5 py-4 flex justify-between items-center">
+<div><h1 class="serif text-lg">Founder Networks</h1><p class="text-[10px] text-[var(--text-secondary)] uppercase tracking-widest mt-0.5">Investor Intelligence</p></div>
+</div>
+<!-- Mobile sector selector -->
+<div class="px-4 py-2 border-t border-[var(--border)] bg-[#F4F2EE]">
+<div class="sector-scroll" id="mobile-sector-nav"></div>
+</div>
+<!-- Mobile tab nav -->
+<div class="bg-white border-t border-[var(--border)] px-4 py-2.5">
+<div class="flex gap-5 overflow-x-auto no-scrollbar" id="mobile-nav">
+<button class="text-sm font-medium whitespace-nowrap text-[var(--text-primary)] border-b-2 border-[var(--text-primary)] pb-1" data-tab="insights">Insights</button>
+<button class="text-sm font-medium whitespace-nowrap text-[var(--text-secondary)]" data-tab="education">Education</button>
+<button class="text-sm font-medium whitespace-nowrap text-[var(--text-secondary)]" data-tab="employers">Employers</button>
+<button class="text-sm font-medium whitespace-nowrap text-[var(--text-secondary)]" data-tab="clusters">Clusters</button>
+<button class="text-sm font-medium whitespace-nowrap text-[var(--text-secondary)]" data-tab="flows">Flows</button>
+<button class="text-sm font-medium whitespace-nowrap text-[var(--text-secondary)]" data-tab="centrality">Connectors</button>
+<button class="text-sm font-medium whitespace-nowrap text-[var(--text-secondary)]" data-tab="geo">Geography</button>
+<button class="text-sm font-medium whitespace-nowrap text-[var(--text-secondary)]" data-tab="matrix">Matrix</button>
+</div>
+</div>
+</div>
+
+<!-- MAIN -->
+<main class="p-5 lg:p-10 max-w-[1400px] mx-auto w-full">
+
+<header class="mb-10" id="page-header">
+<h2 class="text-3xl lg:text-[44px] serif text-[var(--text-primary)] mb-2 tracking-tight leading-tight">Key Insights</h2>
+<p class="text-[var(--text-secondary)] text-base lg:text-lg font-light max-w-2xl leading-relaxed" id="header-desc">Strategic findings from network analysis.</p>
+</header>
+
+<!-- STAT CARDS -->
+<div class="grid grid-cols-2 lg:grid-cols-4 gap-3 lg:gap-6 mb-10">
+<div class="stat-card">
+<div class="serif text-3xl lg:text-[42px] mb-1" id="stat-companies">--</div>
+<div class="text-[10px] lg:text-[11px] font-bold text-[var(--text-secondary)] uppercase tracking-widest">Companies</div>
+</div>
+<div class="stat-card">
+<div class="serif text-3xl lg:text-[42px] mb-1" id="stat-founders">--</div>
+<div class="text-[10px] lg:text-[11px] font-bold text-[var(--text-secondary)] uppercase tracking-widest">Founders</div>
+</div>
+<div class="stat-card">
+<div class="serif text-3xl lg:text-[42px] mb-1" id="stat-edges">--</div>
+<div class="text-[10px] lg:text-[11px] font-bold text-[var(--text-secondary)] uppercase tracking-widest">Network Edges</div>
+</div>
+<div class="stat-card" style="background:#F1F3F5;border-color:transparent">
+<div class="text-[10px] font-bold text-[var(--text-secondary)] uppercase tracking-widest mb-1">Clusters Detected</div>
+<div class="serif text-xl lg:text-2xl" id="stat-clusters">--</div>
+</div>
+</div>
+
+<div id="content-area">
+
+<!-- INSIGHTS -->
+<div class="tab-content active" id="tab-insights">
+<div class="grid gap-5 md:grid-cols-2" id="insights-grid"></div>
+</div>
+
+<!-- EDUCATION HUBS -->
+<div class="tab-content" id="tab-education">
+<div class="bg-white rounded-2xl border border-[var(--border)] shadow-sm overflow-hidden">
+<div class="p-6 lg:p-8 border-b border-[var(--border)]">
+<h3 class="serif text-2xl mb-1">Education Hubs</h3>
+<p class="text-sm text-[var(--text-secondary)]">Institutions ranked by number of founders produced in this sector.</p>
+</div>
+<div class="overflow-x-auto">
+<table class="ptable" id="edu-table"><thead><tr>
+<th class="w-14 pl-6">Rank</th><th>Institution</th><th>Founders</th><th class="pr-6"></th>
+</tr></thead><tbody></tbody></table>
+</div>
+</div>
+</div>
+
+<!-- EMPLOYER PIPELINES -->
+<div class="tab-content" id="tab-employers">
+<div class="bg-white rounded-2xl border border-[var(--border)] shadow-sm overflow-hidden">
+<div class="p-6 lg:p-8 border-b border-[var(--border)]">
+<h3 class="serif text-2xl mb-1">Employer Pipelines</h3>
+<p class="text-sm text-[var(--text-secondary)]">Prior employers ranked by number of founders they spawned — the "mafia" sources.</p>
+</div>
+<div class="overflow-x-auto">
+<table class="ptable" id="emp-table"><thead><tr>
+<th class="w-14 pl-6">Rank</th><th>Employer</th><th>Founders</th><th class="pr-6"></th>
+</tr></thead><tbody></tbody></table>
+</div>
+</div>
+</div>
+
+<!-- FOUNDER CLUSTERS -->
+<div class="tab-content" id="tab-clusters">
+<div class="space-y-5" id="clusters-list"></div>
+</div>
+
+<!-- TALENT FLOWS -->
+<div class="tab-content" id="tab-flows">
+<div class="bg-white rounded-2xl border border-[var(--border)] shadow-sm overflow-hidden">
+<div class="p-6 lg:p-8 border-b border-[var(--border)]">
+<h3 class="serif text-2xl mb-1">Talent Flows</h3>
+<p class="text-sm text-[var(--text-secondary)]">How talent moves from established companies to founding new startups.</p>
+</div>
+<div class="overflow-x-auto">
+<table class="ptable" id="flows-table"><thead><tr>
+<th class="pl-6">From</th><th>To</th><th>Founders</th><th class="w-16 pr-6">#</th>
+</tr></thead><tbody></tbody></table>
+</div>
+</div>
+</div>
+
+<!-- NETWORK CONNECTORS -->
+<div class="tab-content" id="tab-centrality">
+<div class="bg-white rounded-2xl border border-[var(--border)] shadow-sm overflow-hidden">
+<div class="p-6 lg:p-8 border-b border-[var(--border)]">
+<h3 class="serif text-2xl mb-1">Network Connectors</h3>
+<p class="text-sm text-[var(--text-secondary)]">Founders ranked by betweenness centrality — individuals who bridge multiple clusters and networks.</p>
+</div>
+<div class="overflow-x-auto">
+<table class="ptable" id="centrality-table"><thead><tr>
+<th class="w-14 pl-6">Rank</th><th>Founder</th><th>Centrality</th><th class="pr-6"></th>
+</tr></thead><tbody></tbody></table>
+</div>
+</div>
+</div>
+
+<!-- GEOGRAPHY -->
+<div class="tab-content" id="tab-geo">
+<div class="bg-white rounded-2xl border border-[var(--border)] shadow-sm overflow-hidden">
+<div class="p-6 lg:p-8 border-b border-[var(--border)]">
+<h3 class="serif text-2xl mb-1">Geographic Distribution</h3>
+<p class="text-sm text-[var(--text-secondary)]">Company headquarters by city.</p>
+</div>
+<div class="overflow-x-auto">
+<table class="ptable" id="geo-table"><thead><tr>
+<th class="w-14 pl-6">Rank</th><th>City</th><th>Companies</th><th>Share</th><th class="pr-6"></th>
+</tr></thead><tbody></tbody></table>
+</div>
+</div>
+</div>
+
+<!-- FULL MATRIX -->
+<div class="tab-content" id="tab-matrix">
+<div class="bg-white rounded-2xl border border-[var(--border)] shadow-sm overflow-hidden">
+<div class="p-6 lg:p-8 border-b border-[var(--border)]">
+<h3 class="serif text-2xl mb-1">Full Founder Matrix</h3>
+<p class="text-sm text-[var(--text-secondary)]" id="matrix-subtitle">All founders with education and work history — verified data marked.</p>
+</div>
+<div class="overflow-x-auto">
+<table class="ptable" id="matrix-table"><thead><tr>
+<th class="pl-6">Founder</th><th>Company</th><th>Education</th><th>Prior Work</th><th class="pr-6">Source</th>
+</tr></thead><tbody></tbody></table>
+</div>
+</div>
+</div>
+
+</div>
+</main>
+</div>
+
+<script>
+// ===================================================================
+// Data from pipeline
+// ===================================================================
+var SECTORS = [{"id": "fintech", "name": "FinTech", "icon": "payments", "color": "#C29D47", "has_data": true}, {"id": "consumer_tech", "name": "Consumer Tech", "icon": "devices", "color": "#2B4C7E", "has_data": false}, {"id": "edtech", "name": "EdTech", "icon": "school", "color": "#6B3FA0", "has_data": false}, {"id": "saas", "name": "SaaS", "icon": "cloud", "color": "#0E6245", "has_data": false}, {"id": "deeptech", "name": "DeepTech", "icon": "memory", "color": "#9F1239", "has_data": false}, {"id": "climate", "name": "Climate Tech", "icon": "eco", "color": "#0D9488", "has_data": false}, {"id": "logistics", "name": "Logistics", "icon": "local_shipping", "color": "#D97706", "has_data": false}, {"id": "healthtech", "name": "HealthTech", "icon": "health_and_safety", "color": "#DC2626", "has_data": false}];
+var SECTOR_DATA = {"fintech": {"sector_name": "Indian FinTech", "total_companies": 24, "total_founders": 53, "total_edges": 217, "num_clusters": 4, "edu_hubs": [{"institution": "IIT Delhi", "founder_count": 12}, {"institution": "IIT Bombay", "founder_count": 11}, {"institution": "IIM-A", "founder_count": 3}, {"institution": "IIM Bangalore", "founder_count": 3}, {"institution": "ISB", "founder_count": 3}, {"institution": "DCE/DTU", "founder_count": 2}, {"institution": "INSEAD", "founder_count": 2}, {"institution": "Wharton", "founder_count": 2}, {"institution": "BITS Pilani", "founder_count": 2}, {"institution": "IIT Roorkee", "founder_count": 2}, {"institution": "IIT Kharagpur", "founder_count": 2}, {"institution": "IIM-A 1996", "founder_count": 1}, {"institution": "IIT Delhi 1993", "founder_count": 1}, {"institution": "IIT Delhi 2019", "founder_count": 1}, {"institution": "Univ of Mumbai", "founder_count": 1}], "employer_pipes": [{"employer": "ICICI Bank", "founder_count": 9}, {"employer": "Flipkart", "founder_count": 6}, {"employer": "Google", "founder_count": 4}, {"employer": "McKinsey", "founder_count": 4}, {"employer": "Flipkart PM", "founder_count": 2}, {"employer": "Citrus Payment", "founder_count": 2}, {"employer": "Citrus (co-founder)", "founder_count": 2}, {"employer": "India Today", "founder_count": 1}, {"employer": "RiverRun Software", "founder_count": 1}, {"employer": "One97 Communications", "founder_count": 1}, {"employer": "Citi", "founder_count": 1}, {"employer": "Emerson", "founder_count": 1}, {"employer": "AmEx", "founder_count": 1}, {"employer": "Kotak", "founder_count": 1}, {"employer": "Grofers", "founder_count": 1}], "centrality": [{"founder_id": "rupesh-kumar-onecard", "name": "Rupesh Kumar", "centrality": 0.3118}, {"founder_id": "kavitha-subramanian-upstox", "name": "Kavitha Subramanian", "centrality": 0.246}, {"founder_id": "puneet-agarwal-money-view", "name": "Puneet Agarwal", "centrality": 0.1915}, {"founder_id": "ishan-bansal-groww", "name": "Ishan Bansal", "centrality": 0.1652}, {"founder_id": "yashish-dahiya-policybazaar", "name": "Yashish Dahiya", "centrality": 0.0749}, {"founder_id": "asish-mohapatra-oxyzo", "name": "Asish Mohapatra", "centrality": 0.0743}, {"founder_id": "anurag-sinha-onecard", "name": "Anurag Sinha", "centrality": 0.0716}, {"founder_id": "ruchi-kalra-oxyzo", "name": "Ruchi Kalra", "centrality": 0.0636}, {"founder_id": "ashneer-grover-bharatpe", "name": "Ashneer Grover", "centrality": 0.0573}, {"founder_id": "jitendra-gupta-jupiter", "name": "Jitendra Gupta", "centrality": 0.0524}, {"founder_id": "dhirendra-mahyavanshi-turtlemint", "name": "Dhirendra Mahyavanshi", "centrality": 0.0395}, {"founder_id": "deena-jacob-open", "name": "Deena Jacob", "centrality": 0.0385}, {"founder_id": "lalit-keshre-groww", "name": "Lalit Keshre", "centrality": 0.0373}, {"founder_id": "harinder-takhar-paytm", "name": "Harinder Takhar", "centrality": 0.037}, {"founder_id": "rajan-bajaj-slice", "name": "Rajan Bajaj", "centrality": 0.0275}, {"founder_id": "anand-prabhudesai-turtlemint", "name": "Anand Prabhudesai", "centrality": 0.0235}, {"founder_id": "ankit-agarwal-navi", "name": "Ankit Agarwal", "centrality": 0.0196}, {"founder_id": "sanjeev-srinivasan-acko", "name": "Sanjeev Srinivasan", "centrality": 0.0166}, {"founder_id": "harsh-jain-groww", "name": "Harsh Jain", "centrality": 0.0138}, {"founder_id": "hari-velayudan-onecard", "name": "Hari Velayudan", "centrality": 0.0121}], "clusters": [{"cluster_id": 0, "size": 16, "members": ["Harsh Jain", "Nitin Gupta", "Ashneer Grover", "Sachin Bansal", "Sujith Narayanan", "Ashish Kashyap", "Ruchi Kalra", "Puneet Agarwal", "Bipin Preet Singh", "Chandan Joshi", "Shashvat Nakrani", "Sanjay Aggarwal", "Sumit Gwalani", "Ankit Agarwal", "Sarbvir Singh", "Yashish Dahiya"], "dominant_context": [{"entity": "IIT Delhi", "count": 11}, {"entity": "Google", "count": 4}, {"entity": "IIM-A", "count": 3}]}, {"cluster_id": 1, "size": 14, "members": ["Jitendra Gupta", "Lokvir Kapoor", "Rupesh Kumar", "Devang Shah", "Ishan Bansal", "Dhirendra Mahyavanshi", "Deena Jacob", "Vibhav Hathi", "Sanjeev Srinivasan", "Mabel Chacko", "Anish Achuthan", "Amrish Rau", "Hari Velayudan", "Anurag Sinha"], "dominant_context": [{"entity": "ICICI Bank", "count": 9}, {"entity": "OneCard", "count": 5}, {"entity": "IIM Bangalore", "count": 3}]}, {"cluster_id": 2, "size": 12, "members": ["Dhanesh Kumar", "Kavitha Subramanian", "Anand Prabhudesai", "Ravish Naresh", "Lalit Keshre", "Jaideep Poonia", "Ashwin Soni", "Sumit Gupta", "Neeraj Khandelwal", "Ashish Sonone", "Asish Mohapatra", "Sumit Maniyar"], "dominant_context": [{"entity": "IIT Bombay", "count": 11}, {"entity": "Khatabook", "count": 4}, {"entity": "McKinsey", "count": 2}]}, {"cluster_id": 3, "size": 7, "members": ["Rahul Chari", "Deepak Malhotra", "Ajay Bhat", "Sameer Nigam", "Neeraj Singh", "Burzin Engineer", "Rajan Bajaj"], "dominant_context": [{"entity": "Flipkart", "count": 5}, {"entity": "PhonePe", "count": 4}, {"entity": "slice", "count": 2}]}], "flows": [{"from_employer": "ICICI Bank", "to_company": "OneCard", "founders": ["Anurag Sinha", "Rupesh Kumar", "Devang Shah", "Vibhav Hathi"], "count": 4}, {"from_employer": "Flipkart", "to_company": "PhonePe", "founders": ["Rahul Chari", "Burzin Engineer", "Ajay Bhat"], "count": 3}, {"from_employer": "Flipkart PM", "to_company": "Groww", "founders": ["Lalit Keshre", "Harsh Jain"], "count": 2}, {"from_employer": "Flipkart", "to_company": "Groww", "founders": ["Ishan Bansal", "Neeraj Singh"], "count": 2}, {"from_employer": "Google", "to_company": "Fi", "founders": ["Sujith Narayanan", "Sumit Gwalani"], "count": 2}, {"from_employer": "McKinsey", "to_company": "Oxyzo", "founders": ["Asish Mohapatra", "Ruchi Kalra"], "count": 2}], "geo": [{"city": "Unknown", "count": 24, "pct": 100.0}], "matrix": [{"name": "Vijay Shekhar Sharma", "company": "Paytm", "edu": "DCE/DTU BE 1998", "work": "India Today, RiverRun Software", "tags": ["tag-dce"], "verified": true}, {"name": "Harinder Takhar", "company": "Paytm", "edu": "DCE/DTU BE 1998, INSEAD MBA 2006", "work": "One97 Communications", "tags": ["tag-dce"], "verified": true}, {"name": "Yashish Dahiya", "company": "Policybazaar", "edu": "IIT Delhi BTech 1994, IIM-A 1996 1996, INSEAD MBA 2001", "work": "\u2014", "tags": ["tag-iitd", "tag-iim"], "verified": true}, {"name": "Sarbvir Singh", "company": "Policybazaar", "edu": "IIT Delhi 1993 1993, IIM-A MBA 1995", "work": "Citi, Emerson", "tags": ["tag-iitd", "tag-iim"], "verified": true}, {"name": "Ashneer Grover", "company": "BharatPe", "edu": "IIT Delhi BTech 2004, IIM-A MBA 2006", "work": "AmEx, Kotak, Grofers", "tags": ["tag-iitd", "tag-iim"], "verified": true}, {"name": "Shashvat Nakrani", "company": "BharatPe", "edu": "IIT Delhi 2019 2019", "work": "\u2014", "tags": ["tag-iitd"], "verified": true}, {"name": "Sameer Nigam", "company": "PhonePe", "edu": "Univ of Mumbai, Univ of Arizona MS, Wharton MBA", "work": "Flipkart SVP, Shopzilla", "tags": ["tag-fk"], "verified": true}, {"name": "Rahul Chari", "company": "PhonePe", "edu": "\u2014", "work": "Flipkart", "tags": ["tag-fk"], "verified": true}, {"name": "Burzin Engineer", "company": "PhonePe", "edu": "\u2014", "work": "Flipkart", "tags": ["tag-fk"], "verified": true}, {"name": "Ajay Bhat", "company": "PhonePe", "edu": "\u2014", "work": "Flipkart", "tags": ["tag-fk"], "verified": true}, {"name": "Lalit Keshre", "company": "Groww", "edu": "IIT Bombay BTech 2004", "work": "Flipkart PM, Ittiam, Eduflix", "tags": ["tag-iitb", "tag-fk"], "verified": true}, {"name": "Harsh Jain", "company": "Groww", "edu": "IIT Delhi BTech, UCLA MBA", "work": "Flipkart PM", "tags": ["tag-iitd", "tag-fk"], "verified": true}, {"name": "Ishan Bansal", "company": "Groww", "edu": "BITS Pilani", "work": "Flipkart, ICICI Bank", "tags": ["tag-bits", "tag-fk", "tag-icici"], "verified": true}, {"name": "Neeraj Singh", "company": "Groww", "edu": "\u2014", "work": "Flipkart", "tags": ["tag-fk"], "verified": true}, {"name": "Harshil Mathur", "company": "Razorpay", "edu": "IIT Roorkee", "work": "\u2014", "tags": [], "verified": true}, {"name": "Shashank Kumar", "company": "Razorpay", "edu": "IIT Roorkee", "work": "\u2014", "tags": [], "verified": true}, {"name": "Sachin Bansal", "company": "Navi", "edu": "IIT Delhi BTech 2005", "work": "Amazon, Flipkart (co-founder)", "tags": ["tag-iitd"], "verified": true}, {"name": "Ankit Agarwal", "company": "Navi", "edu": "IIT Delhi BTech 2004, IIM-A MBA 2008", "work": "Bank of America, Deutsche Bank", "tags": ["tag-iitd", "tag-iim"], "verified": true}, {"name": "Bipin Preet Singh", "company": "MobiKwik", "edu": "IIT Delhi BTech 2002", "work": "Freescale, NVIDIA, Intel", "tags": ["tag-iitd"], "verified": true}, {"name": "Chandan Joshi", "company": "MobiKwik", "edu": "IIT Delhi BTech 2004, UCLA/LBS MBA", "work": "Credit Suisse", "tags": ["tag-iitd"], "verified": true}, {"name": "Anurag Sinha", "company": "OneCard", "edu": "IIM Bangalore", "work": "ICICI Bank", "tags": ["tag-iim", "tag-icici"], "verified": true}, {"name": "Rupesh Kumar", "company": "OneCard", "edu": "IIT Delhi BTech 1999, ISB MBA 2004", "work": "ICICI Bank", "tags": ["tag-iitd", "tag-icici"], "verified": true}, {"name": "Devang Shah", "company": "OneCard", "edu": "\u2014", "work": "ICICI Bank", "tags": ["tag-icici"], "verified": true}, {"name": "Vibhav Hathi", "company": "OneCard", "edu": "\u2014", "work": "ICICI Bank", "tags": ["tag-icici"], "verified": true}, {"name": "Hari Velayudan", "company": "OneCard", "edu": "\u2014", "work": "Citrus Payment", "tags": [], "verified": true}, {"name": "Jitendra Gupta", "company": "Jupiter", "edu": "\u2014", "work": "ICICI Bank, Citrus (co-founder), PayU", "tags": ["tag-icici"], "verified": true}, {"name": "Amrish Rau", "company": "Pine Labs", "edu": "\u2014", "work": "Citrus (co-founder)", "tags": [], "verified": true}, {"name": "Lokvir Kapoor", "company": "Pine Labs", "edu": "IIT Kanpur, IIM Bangalore", "work": "\u2014", "tags": ["tag-iim"], "verified": true}, {"name": "Puneet Agarwal", "company": "Money View", "edu": "IIT Delhi BTech, Purdue MBA", "work": "Google, McKinsey, Capital One", "tags": ["tag-iitd"], "verified": true}, {"name": "Sanjay Aggarwal", "company": "Money View", "edu": "IIT Delhi BTech 1993", "work": "Yahoo, Minglebox", "tags": ["tag-iitd"], "verified": true}, {"name": "Kavitha Subramanian", "company": "Upstox", "edu": "IIT Bombay, Wharton MBA", "work": "McKinsey", "tags": ["tag-iitb"], "verified": true}, {"name": "Sumit Gupta", "company": "CoinDCX", "edu": "IIT Bombay", "work": "\u2014", "tags": ["tag-iitb"], "verified": true}, {"name": "Neeraj Khandelwal", "company": "CoinDCX", "edu": "IIT Bombay", "work": "\u2014", "tags": ["tag-iitb"], "verified": true}, {"name": "Ravish Naresh", "company": "Khatabook", "edu": "IIT Bombay", "work": "Housing.com", "tags": ["tag-iitb"], "verified": true}, {"name": "Ashish Sonone", "company": "Khatabook", "edu": "IIT Bombay", "work": "\u2014", "tags": ["tag-iitb"], "verified": true}, {"name": "Dhanesh Kumar", "company": "Khatabook", "edu": "IIT Bombay", "work": "\u2014", "tags": ["tag-iitb"], "verified": true}, {"name": "Jaideep Poonia", "company": "Khatabook", "edu": "IIT Bombay", "work": "\u2014", "tags": ["tag-iitb"], "verified": true}, {"name": "Sujith Narayanan", "company": "Fi", "edu": "\u2014", "work": "Google", "tags": [], "verified": true}, {"name": "Sumit Gwalani", "company": "Fi", "edu": "\u2014", "work": "Google", "tags": [], "verified": true}, {"name": "Ashish Kashyap", "company": "INDMoney", "edu": "\u2014", "work": "Google, ibibo", "tags": [], "verified": true}, {"name": "Asish Mohapatra", "company": "Oxyzo", "edu": "IIT Kharagpur, ISB", "work": "McKinsey", "tags": [], "verified": true}, {"name": "Ruchi Kalra", "company": "Oxyzo", "edu": "IIT Delhi BTech 2004, ISB MBA 2007", "work": "McKinsey, Evalueserve", "tags": ["tag-iitd"], "verified": true}, {"name": "Rajan Bajaj", "company": "slice", "edu": "IIT Kharagpur", "work": "Flipkart", "tags": ["tag-fk"], "verified": true}, {"name": "Deepak Malhotra", "company": "slice", "edu": "BITS Pilani", "work": "\u2014", "tags": ["tag-bits"], "verified": true}, {"name": "Anand Prabhudesai", "company": "Turtlemint", "edu": "IIT Bombay", "work": "\u2014", "tags": ["tag-iitb"], "verified": true}, {"name": "Dhirendra Mahyavanshi", "company": "Turtlemint", "edu": "\u2014", "work": "ICICI Bank, Quikr", "tags": ["tag-icici"], "verified": true}, {"name": "Sumit Maniyar", "company": "Rupeek", "edu": "IIT Bombay", "work": "\u2014", "tags": ["tag-iitb"], "verified": true}, {"name": "Ashwin Soni", "company": "Rupeek", "edu": "IIT Bombay", "work": "\u2014", "tags": ["tag-iitb"], "verified": true}, {"name": "Nitin Gupta", "company": "PayU", "edu": "IIT Delhi BTech 2008", "work": "Royal Bank of Scotland", "tags": ["tag-iitd"], "verified": true}, {"name": "Sanjeev Srinivasan", "company": "ACKO", "edu": "\u2014", "work": "ICICI Bank", "tags": ["tag-icici"], "verified": true}, {"name": "Deena Jacob", "company": "Open", "edu": "\u2014", "work": "ICICI Bank", "tags": ["tag-icici"], "verified": true}, {"name": "Anish Achuthan", "company": "Open", "edu": "\u2014", "work": "Citrus Payment", "tags": [], "verified": true}, {"name": "Mabel Chacko", "company": "Open", "edu": "IIM Bangalore", "work": "\u2014", "tags": ["tag-iim"], "verified": true}], "insights": [{"category": "cluster", "title": "IIT Delhi Cluster (16 founders)", "detail": "Tight cluster of 16 founders dominated by IIT Delhi connections.", "score": 32}, {"category": "bridge_founder", "title": "Rupesh Kumar \u2014 Network Connector", "detail": "Rupesh Kumar has betweenness centrality 0.3118, indicating they bridge multiple founder networks.", "score": 31.180000000000003}, {"category": "cluster", "title": "ICICI Bank Cluster (14 founders)", "detail": "Tight cluster of 14 founders dominated by ICICI Bank connections.", "score": 28}, {"category": "bridge_founder", "title": "Kavitha Subramanian \u2014 Network Connector", "detail": "Kavitha Subramanian has betweenness centrality 0.246, indicating they bridge multiple founder networks.", "score": 24.6}, {"category": "cluster", "title": "IIT Bombay Cluster (12 founders)", "detail": "Tight cluster of 12 founders dominated by IIT Bombay connections.", "score": 24}, {"category": "bridge_founder", "title": "Puneet Agarwal \u2014 Network Connector", "detail": "Puneet Agarwal has betweenness centrality 0.1915, indicating they bridge multiple founder networks.", "score": 19.15}, {"category": "bridge_founder", "title": "Ishan Bansal \u2014 Network Connector", "detail": "Ishan Bansal has betweenness centrality 0.1652, indicating they bridge multiple founder networks.", "score": 16.520000000000003}, {"category": "cluster", "title": "Flipkart Cluster (7 founders)", "detail": "Tight cluster of 7 founders dominated by Flipkart connections.", "score": 14}, {"category": "employer_pipeline", "title": "ICICI Bank Alumni Mafia", "detail": "ICICI Bank spawned 9 founders.", "score": 13.5}, {"category": "education_hub", "title": "IIT Delhi Founder Factory", "detail": "IIT Delhi produced 12 founders in this sector.", "score": 12}, {"category": "education_hub", "title": "IIT Bombay Founder Factory", "detail": "IIT Bombay produced 11 founders in this sector.", "score": 11}, {"category": "talent_flow", "title": "ICICI Bank \u2192 OneCard", "detail": "4 founders moved from ICICI Bank to found OneCard: Anurag Sinha, Rupesh Kumar, Devang Shah, Vibhav Hathi.", "score": 10.0}, {"category": "employer_pipeline", "title": "Flipkart Alumni Mafia", "detail": "Flipkart spawned 6 founders.", "score": 9.0}, {"category": "talent_flow", "title": "Flipkart \u2192 PhonePe", "detail": "3 founders moved from Flipkart to found PhonePe: Rahul Chari, Burzin Engineer, Ajay Bhat.", "score": 7.5}, {"category": "bridge_founder", "title": "Yashish Dahiya \u2014 Network Connector", "detail": "Yashish Dahiya has betweenness centrality 0.0749, indicating they bridge multiple founder networks.", "score": 7.489999999999999}, {"category": "employer_pipeline", "title": "Google Alumni Mafia", "detail": "Google spawned 4 founders.", "score": 6.0}, {"category": "employer_pipeline", "title": "McKinsey Alumni Mafia", "detail": "McKinsey spawned 4 founders.", "score": 6.0}, {"category": "talent_flow", "title": "Flipkart PM \u2192 Groww", "detail": "2 founders moved from Flipkart PM to found Groww: Lalit Keshre, Harsh Jain.", "score": 5.0}, {"category": "talent_flow", "title": "Flipkart \u2192 Groww", "detail": "2 founders moved from Flipkart to found Groww: Ishan Bansal, Neeraj Singh.", "score": 5.0}, {"category": "talent_flow", "title": "Google \u2192 Fi", "detail": "2 founders moved from Google to found Fi: Sujith Narayanan, Sumit Gwalani.", "score": 5.0}]}};
+var currentSector = 'fintech';
+
+// Current sector data (populated by loadSectorData)
+var eduHubs = [];
+var empPipes = [];
+var centrality = [];
+var clusters = [];
+var flows = [];
+var geo = [];
+var matrixData = [];
+var insights = [];
+var totalCompanies = 0;
+var totalFounders = 0;
+var totalEdges = 0;
+var numClusters = 0;
+var sectorDisplayName = '';
+
+// ===================================================================
+// Sector data loading
+// ===================================================================
+function loadSectorData(sectorId) {
+  var d = SECTOR_DATA[sectorId];
+  if (!d) return false;
+  eduHubs = d.edu_hubs || [];
+  empPipes = d.employer_pipes || [];
+  centrality = d.centrality || [];
+  clusters = d.clusters || [];
+  flows = d.flows || [];
+  geo = d.geo || [];
+  matrixData = d.matrix || [];
+  insights = d.insights || [];
+  totalCompanies = d.total_companies || 0;
+  totalFounders = d.total_founders || 0;
+  totalEdges = d.total_edges || 0;
+  numClusters = d.num_clusters || 0;
+  sectorDisplayName = d.sector_name || sectorId;
+  return true;
+}
+
+// ===================================================================
+// Sector selector rendering
+// ===================================================================
+function renderSectorNav() {
+  var desktop = document.getElementById('sector-nav');
+  var mobile = document.getElementById('mobile-sector-nav');
+  var html = SECTORS.map(function(s) {
+    var cls = 'sector-chip';
+    if (s.id === currentSector) cls += ' active';
+    if (!s.has_data) cls += ' disabled';
+    var onclick = s.has_data ? ' onclick="switchSector(\'' + s.id + '\')"' : '';
+    return '<div class="' + cls + '" data-sector="' + s.id + '"' + onclick + '>'
+      + '<span class="material-symbols-outlined">' + s.icon + '</span>'
+      + '<span>' + s.name + '</span>'
+      + '</div>';
+  }).join('');
+  if (desktop) desktop.innerHTML = html;
+  if (mobile) mobile.innerHTML = html;
+}
+
+function updateSectorSelector() {
+  document.querySelectorAll('.sector-chip').forEach(function(el) {
+    el.classList.toggle('active', el.dataset.sector === currentSector);
+  });
+}
+
+// ===================================================================
+// Switch sector
+// ===================================================================
+function switchSector(sectorId) {
+  if (sectorId === currentSector) return;
+  if (!loadSectorData(sectorId)) return;
+  currentSector = sectorId;
+  updateSectorSelector();
+  updateStatCards();
+  document.title = sectorDisplayName + ' \u2014 Founder Networks';
+  renderAll();
+  switchTab('insights');
+}
+
+// ===================================================================
+// Stat cards
+// ===================================================================
+function updateStatCards() {
+  document.getElementById('stat-companies').textContent = totalCompanies;
+  document.getElementById('stat-founders').textContent = totalFounders;
+  document.getElementById('stat-edges').textContent = totalEdges;
+  document.getElementById('stat-clusters').textContent = numClusters;
+}
+
+// ===================================================================
+// Tab headers (dynamic based on current data)
+// ===================================================================
+function getHeaders() {
+  return {
+    insights: {title:'Key Insights', desc:'Strategic findings from network analysis across ' + totalFounders + ' founders and ' + totalCompanies + ' companies.'},
+    education: {title:'Education Hubs', desc:'Which institutions produce the most founders? The IIT system, elite MBAs, and emerging colleges.'},
+    employers: {title:'Employer Pipelines', desc:'The companies that spawned entire founder ecosystems \u2014 the \u201cmafia\u201d sources.'},
+    clusters: {title:'Founder Clusters', desc:'Tightly connected groups detected via community analysis \u2014 shared education, employers, or co-founding.'},
+    flows: {title:'Talent Flows', desc:'Tracing employer-to-startup pipelines. Where do founders come from?'},
+    centrality: {title:'Network Connectors', desc:'The individuals who bridge multiple founder networks \u2014 the hidden power brokers.'},
+    geo: {title:'Geographic Distribution', desc:'Where the companies are headquartered \u2014 city-level breakdown.'},
+    matrix: {title:'Full Founder Matrix', desc:totalFounders + ' founders across ' + totalCompanies + ' companies with education and work history.'}
+  };
+}
+
+// ===================================================================
+// Tab switching
+// ===================================================================
+var currentTab = 'insights';
+
+function switchTab(tabId) {
+  currentTab = tabId;
+  document.querySelectorAll('.tab-content').forEach(function(t) { t.classList.remove('active'); });
+  var el = document.getElementById('tab-' + tabId);
+  if (el) el.classList.add('active');
+  document.querySelectorAll('#sidebar-nav .side-link').forEach(function(n) {
+    n.classList.toggle('active', n.dataset.tab === tabId);
+  });
+  var headers = getHeaders();
+  var h = headers[tabId];
+  if (h) {
+    document.querySelector('#page-header h2').textContent = h.title;
+    document.getElementById('header-desc').textContent = h.desc;
+  }
+  // Update mobile nav active state
+  document.querySelectorAll('#mobile-nav button').forEach(function(b) {
+    if (b.dataset.tab === tabId) {
+      b.className = 'text-sm font-medium whitespace-nowrap text-[var(--text-primary)] border-b-2 border-[var(--text-primary)] pb-1';
+    } else {
+      b.className = 'text-sm font-medium whitespace-nowrap text-[var(--text-secondary)]';
+    }
+  });
+}
+
+document.querySelectorAll('#sidebar-nav .side-link').forEach(function(el) {
+  el.addEventListener('click', function() { switchTab(this.dataset.tab); });
+});
+document.querySelectorAll('#mobile-nav button').forEach(function(el) {
+  el.addEventListener('click', function() { switchTab(this.dataset.tab); });
+});
+
+// ===================================================================
+// Insight icons & pill colors
+// ===================================================================
+var INSIGHT_ICONS = {
+  education_hub: 'account_balance',
+  employer_pipeline: 'corporate_fare',
+  bridge_founder: 'share',
+  cluster: 'hub',
+  talent_flow: 'swap_horiz'
+};
+var INSIGHT_PILLS = {
+  education_hub: 'pill-blue',
+  employer_pipeline: 'pill-purple',
+  bridge_founder: 'pill-gold',
+  cluster: 'pill-green',
+  talent_flow: 'pill-rose'
+};
+
+// ===================================================================
+// Render functions
+// ===================================================================
+
+function renderInsights() {
+  var grid = document.getElementById('insights-grid');
+  if (!insights.length) {
+    grid.innerHTML = '<div class="empty-state col-span-2"><span class="material-symbols-outlined">lightbulb</span><p class="text-[var(--text-secondary)]">No insight data available for this sector yet.</p></div>';
+    return;
+  }
+  grid.innerHTML = insights.map(function(ins) {
+    var icon = INSIGHT_ICONS[ins.category] || 'lightbulb';
+    return '<div class="insight-card">'
+      + '<div class="flex items-center gap-3 mb-3">'
+      + '<span class="material-symbols-outlined text-[var(--accent-gold)] text-xl">' + icon + '</span>'
+      + '<span class="pill ' + (INSIGHT_PILLS[ins.category] || 'pill-gray') + ' text-[10px] uppercase tracking-wide">' + ins.category.replace(/_/g, ' ') + '</span>'
+      + '</div>'
+      + '<h4 class="font-semibold text-base mb-2">' + ins.title + '</h4>'
+      + '<p class="text-sm text-[var(--text-secondary)] leading-relaxed">' + ins.detail + '</p>'
+      + '</div>';
+  }).join('');
+}
+
+function renderEducation() {
+  var tbody = document.querySelector('#edu-table tbody');
+  if (!eduHubs.length) { tbody.innerHTML = '<tr><td colspan="4" class="text-center py-12 text-[var(--text-secondary)]">No education data available.</td></tr>'; return; }
+  var mx = eduHubs[0].founder_count;
+  tbody.innerHTML = eduHubs.map(function(d, i) {
+    var pct = Math.round(d.founder_count / mx * 100);
+    return '<tr>'
+      + '<td class="pl-6 mono text-[var(--text-secondary)] text-sm">' + (i < 9 ? '0' : '') + (i + 1) + '</td>'
+      + '<td><div class="font-semibold text-[15px]">' + d.institution + '</div></td>'
+      + '<td><span class="serif text-lg">' + d.founder_count + '</span></td>'
+      + '<td class="pr-6 w-48"><div class="bar-bg"><div class="bar-fill bg-amber-400" style="width:' + pct + '%"></div></div></td>'
+      + '</tr>';
+  }).join('');
+}
+
+function renderEmployers() {
+  var tbody = document.querySelector('#emp-table tbody');
+  if (!empPipes.length) { tbody.innerHTML = '<tr><td colspan="4" class="text-center py-12 text-[var(--text-secondary)]">No employer data available.</td></tr>'; return; }
+  var mx = empPipes[0].founder_count;
+  tbody.innerHTML = empPipes.map(function(d, i) {
+    var pct = Math.round(d.founder_count / mx * 100);
+    return '<tr>'
+      + '<td class="pl-6 mono text-[var(--text-secondary)] text-sm">' + (i < 9 ? '0' : '') + (i + 1) + '</td>'
+      + '<td><div class="font-semibold text-[15px]">' + d.employer + '</div></td>'
+      + '<td><span class="serif text-lg">' + d.founder_count + '</span></td>'
+      + '<td class="pr-6 w-48"><div class="bar-bg"><div class="bar-fill bg-violet-400" style="width:' + pct + '%"></div></div></td>'
+      + '</tr>';
+  }).join('');
+}
+
+function renderClusters() {
+  var list = document.getElementById('clusters-list');
+  if (!clusters.length) {
+    list.innerHTML = '<div class="empty-state"><span class="material-symbols-outlined">hub</span><p class="text-[var(--text-secondary)]">No cluster data available for this sector yet.</p></div>';
+    return;
+  }
+  list.innerHTML = clusters.map(function(c, i) {
+    var ctx = c.dominant_context.map(function(d) { return d.entity + ' (' + d.count + ')'; }).join(', ');
+    var members = c.members.map(function(m) {
+      return '<span class="pill pill-gray mr-1 mb-1">' + m + '</span>';
+    }).join('');
+    return '<div class="network-card">'
+      + '<div class="flex items-center gap-3 mb-4">'
+      + '<span class="material-symbols-outlined text-[var(--accent-blue)] text-xl">hub</span>'
+      + '<h4 class="font-semibold text-base">Cluster ' + (i + 1) + ' \u2014 ' + c.size + ' founders</h4>'
+      + '<span class="pill pill-gold border border-[#E8DAB2] text-[10px]">' + c.size + ' MEMBERS</span>'
+      + '</div>'
+      + '<p class="text-xs text-[var(--text-secondary)] mb-3">Dominant context: ' + ctx + '</p>'
+      + '<div class="flex flex-wrap">' + members + '</div>'
+      + '</div>';
+  }).join('');
+}
+
+function renderFlows() {
+  var tbody = document.querySelector('#flows-table tbody');
+  if (!flows.length) { tbody.innerHTML = '<tr><td colspan="4" class="text-center py-12 text-[var(--text-secondary)]">No talent flow data available.</td></tr>'; return; }
+  tbody.innerHTML = flows.map(function(f) {
+    var founders = f.founders.map(function(n) {
+      return '<span class="pill pill-gray mr-1 mb-1">' + n + '</span>';
+    }).join('');
+    return '<tr>'
+      + '<td class="pl-6"><div class="font-semibold">' + f.from_employer + '</div></td>'
+      + '<td><div class="font-semibold">' + f.to_company + '</div></td>'
+      + '<td><div class="flex flex-wrap">' + founders + '</div></td>'
+      + '<td class="pr-6"><span class="mono text-sm font-bold text-amber-600 bg-amber-50 px-2 py-0.5 rounded">' + f.count + 'x</span></td>'
+      + '</tr>';
+  }).join('');
+}
+
+function renderCentrality() {
+  var tbody = document.querySelector('#centrality-table tbody');
+  if (!centrality.length) { tbody.innerHTML = '<tr><td colspan="4" class="text-center py-12 text-[var(--text-secondary)]">No centrality data available.</td></tr>'; return; }
+  var mx = centrality[0].centrality || 1;
+  tbody.innerHTML = centrality.map(function(d, i) {
+    var pct = Math.round(d.centrality / mx * 100);
+    return '<tr>'
+      + '<td class="pl-6 mono text-[var(--text-secondary)] text-sm">' + (i < 9 ? '0' : '') + (i + 1) + '</td>'
+      + '<td><div class="font-semibold text-[15px]">' + d.name + '</div></td>'
+      + '<td><span class="mono text-sm">' + d.centrality + '</span></td>'
+      + '<td class="pr-6 w-48"><div class="bar-bg"><div class="bar-fill bg-blue-400" style="width:' + pct + '%"></div></div></td>'
+      + '</tr>';
+  }).join('');
+}
+
+function renderGeo() {
+  var tbody = document.querySelector('#geo-table tbody');
+  if (!geo.length) { tbody.innerHTML = '<tr><td colspan="5" class="text-center py-12 text-[var(--text-secondary)]">No geographic data available.</td></tr>'; return; }
+  var mx = geo[0].count;
+  tbody.innerHTML = geo.map(function(d, i) {
+    var pct = Math.round(d.count / mx * 100);
+    return '<tr>'
+      + '<td class="pl-6 mono text-[var(--text-secondary)] text-sm">' + (i < 9 ? '0' : '') + (i + 1) + '</td>'
+      + '<td><div class="font-semibold text-[15px]">' + d.city + '</div></td>'
+      + '<td><span class="serif text-lg">' + d.count + '</span></td>'
+      + '<td><span class="pill pill-gray">' + d.pct + '%</span></td>'
+      + '<td class="pr-6 w-36"><div class="bar-bg"><div class="bar-fill bg-emerald-400" style="width:' + pct + '%"></div></div></td>'
+      + '</tr>';
+  }).join('');
+}
+
+function renderMatrix() {
+  var tbody = document.querySelector('#matrix-table tbody');
+  if (!matrixData.length) { tbody.innerHTML = '<tr><td colspan="5" class="text-center py-12 text-[var(--text-secondary)]">No founder data available.</td></tr>'; return; }
+  document.getElementById('matrix-subtitle').textContent = totalFounders + ' founders across ' + totalCompanies + ' companies \u2014 verified data marked.';
+  tbody.innerHTML = matrixData.map(function(d) {
+    var badge = d.verified
+      ? '<span class="verified-badge ml-2">VERIFIED</span>'
+      : '';
+    var source = d.verified
+      ? '<span class="pill pill-green">Manual</span>'
+      : '<span class="pill pill-blue">Tracxn</span>';
+    return '<tr>'
+      + '<td class="pl-6"><div class="font-semibold">' + d.name + badge + '</div></td>'
+      + '<td>' + d.company + '</td>'
+      + '<td class="text-[var(--text-secondary)]">' + d.edu + '</td>'
+      + '<td class="text-[var(--text-secondary)]">' + d.work + '</td>'
+      + '<td class="pr-6">' + source + '</td>'
+      + '</tr>';
+  }).join('');
+}
+
+function renderAll() {
+  renderInsights();
+  renderEducation();
+  renderEmployers();
+  renderClusters();
+  renderFlows();
+  renderCentrality();
+  renderGeo();
+  renderMatrix();
+}
+
+// ===================================================================
+// Initial render
+// ===================================================================
+renderSectorNav();
+loadSectorData(currentSector);
+updateStatCards();
+document.title = sectorDisplayName + ' \u2014 Founder Networks';
+renderAll();
+</script>
+</body>
+</html>
