@@ -1,0 +1,45 @@
+# Sector configuration: Indian Consumer Tech
+# D2C, social, gaming, media, food-delivery, travel — consumer-facing startups.
+
+name: "Indian Consumer Tech"
+sector: "Consumer Tech"
+country: "India"
+description: "Indian Consumer Tech startups — founder network mapping"
+
+filters:
+  min_funding: 10000000
+  founded_after: 2005
+  limit: 200
+  enrich_domains: false
+
+tracked_institutions:
+  - "IIT Delhi"
+  - "IIT Bombay"
+  - "IIT Kanpur"
+  - "IIT Kharagpur"
+  - "IIT Madras"
+  - "BITS Pilani"
+  - "IIM Ahmedabad"
+  - "IIM Bangalore"
+  - "IIM Calcutta"
+  - "ISB Hyderabad"
+  - "DCE/DTU"
+  - "NSIT"
+  - "NIT Trichy"
+
+tracked_employers:
+  - "Flipkart"
+  - "Amazon"
+  - "Google"
+  - "Facebook"
+  - "Ola"
+  - "Zomato"
+  - "Swiggy"
+  - "McKinsey"
+  - "BCG"
+  - "Unilever"
+
+analysis:
+  min_cluster_size: 3
+  top_n_hubs: 15
+  top_n_bridges: 10

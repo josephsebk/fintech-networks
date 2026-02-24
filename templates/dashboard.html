@@ -1,0 +1,586 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Founder Networks</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Sans:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<style>
+:root {
+  --bg:#F8F7F4;--surface:#FFFFFF;--text-primary:#1C2434;--text-secondary:#5C6B7F;
+  --accent-gold:#C29D47;--accent-gold-bg:#F9F3E5;--accent-blue:#2B4C7E;
+  --border:#E6E8EC;--card-shadow:0 1px 3px rgba(0,0,0,0.04);
+}
+body{background:var(--bg);color:var(--text-primary);font-family:'DM Sans',sans-serif;-webkit-font-smoothing:antialiased;min-height:100dvh}
+h1,h2,h3,.serif{font-family:'DM Serif Display',serif}
+.mono{font-family:'JetBrains Mono',monospace}
+.side-link{display:flex;align-items:center;gap:12px;padding:10px 16px;border-radius:10px;font-size:14px;font-weight:500;color:var(--text-secondary);cursor:pointer;transition:all .2s}
+.side-link:hover{background:#EFEDE9;color:var(--text-primary)}
+.side-link.active{background:var(--surface);color:var(--text-primary);box-shadow:0 1px 3px rgba(0,0,0,.06)}
+.stat-card{background:var(--surface);padding:24px;border-radius:16px;border:1px solid var(--border);transition:all .3s}
+.stat-card:hover{box-shadow:0 8px 24px rgba(0,0,0,.06);transform:translateY(-2px)}
+.ptable{width:100%;border-collapse:separate;border-spacing:0}
+.ptable th{text-align:left;padding:14px 20px;color:var(--text-secondary);font-weight:500;font-size:11px;text-transform:uppercase;letter-spacing:.08em;border-bottom:1px solid var(--border);background:var(--surface)}
+.ptable td{padding:16px 20px;border-bottom:1px solid var(--border);font-size:14px;vertical-align:middle;transition:background .2s}
+.ptable tr:hover td{background:#FBFBFA}
+.ptable tr:last-child td{border-bottom:none}
+.pill{display:inline-flex;padding:3px 10px;border-radius:999px;font-size:11px;font-weight:600;letter-spacing:.02em;line-height:1.4}
+.pill-gold{background:var(--accent-gold-bg);color:#8F6B1E}
+.pill-gray{background:#F3F4F6;color:var(--text-secondary);border:1px solid #E5E7EB}
+.pill-blue{background:#EBF1F8;color:var(--accent-blue)}
+.pill-green{background:#E6F6EC;color:#0E6245}
+.pill-purple{background:#F3EEFB;color:#6B3FA0}
+.pill-rose{background:#FFF1F2;color:#9F1239}
+.tab-content{display:none}.tab-content.active{display:block}
+.insight-card{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:28px;transition:all .3s}
+.insight-card:hover{box-shadow:0 4px 16px rgba(0,0,0,.06)}
+.network-card{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:24px;transition:all .3s}
+.network-card:hover{box-shadow:0 4px 16px rgba(0,0,0,.06)}
+.no-scrollbar::-webkit-scrollbar{display:none}
+.no-scrollbar{-ms-overflow-style:none;scrollbar-width:none}
+.bar-bg{height:8px;background:#F1F1EF;border-radius:99px;overflow:hidden}
+.bar-fill{height:100%;border-radius:99px;transition:width .6s ease}
+.verified-badge{display:inline-flex;padding:2px 8px;border-radius:999px;font-size:10px;font-weight:600;background:#E6F6EC;color:#0E6245;letter-spacing:.02em}
+
+/* Sector selector */
+.sector-chip{display:inline-flex;align-items:center;gap:5px;padding:5px 10px;border-radius:8px;font-size:12px;font-weight:500;color:var(--text-secondary);cursor:pointer;transition:all .15s;border:1px solid transparent;user-select:none}
+.sector-chip:hover{background:#EFEDE9;color:var(--text-primary)}
+.sector-chip.active{background:var(--accent-gold-bg);color:#8F6B1E;border-color:#E8DAB2;font-weight:600}
+.sector-chip.disabled{opacity:.35;cursor:default;pointer-events:none}
+.sector-chip .material-symbols-outlined{font-size:14px}
+
+/* Mobile sector selector */
+.sector-scroll{display:flex;gap:6px;overflow-x:auto;padding-bottom:2px}
+.sector-scroll::-webkit-scrollbar{display:none}
+.sector-scroll{-ms-overflow-style:none;scrollbar-width:none}
+
+/* Empty state */
+.empty-state{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:80px 24px;text-align:center}
+.empty-state .material-symbols-outlined{font-size:48px;color:var(--border);margin-bottom:16px}
+</style>
+</head>
+<body>
+<div class="lg:grid lg:grid-cols-[264px_1fr] min-h-screen">
+
+<!-- SIDEBAR -->
+<aside class="hidden lg:flex flex-col bg-[#F4F2EE] border-r border-[#E6E4DF] h-screen sticky top-0 overflow-y-auto px-5 py-7">
+<div class="mb-6">
+<h1 class="serif text-[22px] text-[var(--text-primary)] tracking-tight leading-tight">Founder<br/>Networks</h1>
+<p class="text-[10px] text-[var(--text-secondary)] mt-2 font-semibold tracking-[.15em] uppercase">Investor Intelligence &middot; 2026</p>
+</div>
+
+<!-- SECTOR SELECTOR -->
+<div class="mb-6">
+<p class="text-[10px] font-bold text-[var(--text-secondary)] uppercase tracking-[.12em] mb-2.5 px-1">Sector</p>
+<div class="flex flex-wrap gap-1.5" id="sector-nav"></div>
+</div>
+
+<div class="h-px bg-[#E6E4DF] mb-5"></div>
+
+<nav class="space-y-1 flex-1" id="sidebar-nav">
+<div class="side-link active" data-tab="insights"><span class="material-symbols-outlined text-[18px]">lightbulb</span>Key Insights</div>
+<div class="side-link" data-tab="education"><span class="material-symbols-outlined text-[18px]">account_balance</span>Education Hubs</div>
+<div class="side-link" data-tab="employers"><span class="material-symbols-outlined text-[18px]">corporate_fare</span>Employer Pipelines</div>
+<div class="side-link" data-tab="clusters"><span class="material-symbols-outlined text-[18px]">hub</span>Founder Clusters</div>
+<div class="side-link" data-tab="flows"><span class="material-symbols-outlined text-[18px]">swap_horiz</span>Talent Flows</div>
+<div class="side-link" data-tab="centrality"><span class="material-symbols-outlined text-[18px]">share</span>Network Connectors</div>
+<div class="side-link" data-tab="geo"><span class="material-symbols-outlined text-[18px]">location_on</span>Geography</div>
+<div class="side-link" data-tab="matrix"><span class="material-symbols-outlined text-[18px]">table_chart</span>Full Matrix</div>
+</nav>
+<div class="pt-6 mt-6 border-t border-[#E6E4DF]">
+<div class="flex items-center gap-2 mb-2 text-[10px] font-bold text-emerald-700 bg-emerald-50 px-3 py-1.5 rounded-full w-fit"><span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>PIPELINE DATA</div>
+<p class="text-[11px] text-[var(--text-secondary)] leading-relaxed">Source: Tracxn + Verified<br>Last updated Feb 2026</p>
+</div>
+</aside>
+
+<!-- MOBILE NAV -->
+<div class="lg:hidden sticky top-0 z-40 bg-[var(--bg)] border-b border-[var(--border)]">
+<div class="px-5 py-4 flex justify-between items-center">
+<div><h1 class="serif text-lg">Founder Networks</h1><p class="text-[10px] text-[var(--text-secondary)] uppercase tracking-widest mt-0.5">Investor Intelligence</p></div>
+</div>
+<!-- Mobile sector selector -->
+<div class="px-4 py-2 border-t border-[var(--border)] bg-[#F4F2EE]">
+<div class="sector-scroll" id="mobile-sector-nav"></div>
+</div>
+<!-- Mobile tab nav -->
+<div class="bg-white border-t border-[var(--border)] px-4 py-2.5">
+<div class="flex gap-5 overflow-x-auto no-scrollbar" id="mobile-nav">
+<button class="text-sm font-medium whitespace-nowrap text-[var(--text-primary)] border-b-2 border-[var(--text-primary)] pb-1" data-tab="insights">Insights</button>
+<button class="text-sm font-medium whitespace-nowrap text-[var(--text-secondary)]" data-tab="education">Education</button>
+<button class="text-sm font-medium whitespace-nowrap text-[var(--text-secondary)]" data-tab="employers">Employers</button>
+<button class="text-sm font-medium whitespace-nowrap text-[var(--text-secondary)]" data-tab="clusters">Clusters</button>
+<button class="text-sm font-medium whitespace-nowrap text-[var(--text-secondary)]" data-tab="flows">Flows</button>
+<button class="text-sm font-medium whitespace-nowrap text-[var(--text-secondary)]" data-tab="centrality">Connectors</button>
+<button class="text-sm font-medium whitespace-nowrap text-[var(--text-secondary)]" data-tab="geo">Geography</button>
+<button class="text-sm font-medium whitespace-nowrap text-[var(--text-secondary)]" data-tab="matrix">Matrix</button>
+</div>
+</div>
+</div>
+
+<!-- MAIN -->
+<main class="p-5 lg:p-10 max-w-[1400px] mx-auto w-full">
+
+<header class="mb-10" id="page-header">
+<h2 class="text-3xl lg:text-[44px] serif text-[var(--text-primary)] mb-2 tracking-tight leading-tight">Key Insights</h2>
+<p class="text-[var(--text-secondary)] text-base lg:text-lg font-light max-w-2xl leading-relaxed" id="header-desc">Strategic findings from network analysis.</p>
+</header>
+
+<!-- STAT CARDS -->
+<div class="grid grid-cols-2 lg:grid-cols-4 gap-3 lg:gap-6 mb-10">
+<div class="stat-card">
+<div class="serif text-3xl lg:text-[42px] mb-1" id="stat-companies">--</div>
+<div class="text-[10px] lg:text-[11px] font-bold text-[var(--text-secondary)] uppercase tracking-widest">Companies</div>
+</div>
+<div class="stat-card">
+<div class="serif text-3xl lg:text-[42px] mb-1" id="stat-founders">--</div>
+<div class="text-[10px] lg:text-[11px] font-bold text-[var(--text-secondary)] uppercase tracking-widest">Founders</div>
+</div>
+<div class="stat-card">
+<div class="serif text-3xl lg:text-[42px] mb-1" id="stat-edges">--</div>
+<div class="text-[10px] lg:text-[11px] font-bold text-[var(--text-secondary)] uppercase tracking-widest">Network Edges</div>
+</div>
+<div class="stat-card" style="background:#F1F3F5;border-color:transparent">
+<div class="text-[10px] font-bold text-[var(--text-secondary)] uppercase tracking-widest mb-1">Clusters Detected</div>
+<div class="serif text-xl lg:text-2xl" id="stat-clusters">--</div>
+</div>
+</div>
+
+<div id="content-area">
+
+<!-- INSIGHTS -->
+<div class="tab-content active" id="tab-insights">
+<div class="grid gap-5 md:grid-cols-2" id="insights-grid"></div>
+</div>
+
+<!-- EDUCATION HUBS -->
+<div class="tab-content" id="tab-education">
+<div class="bg-white rounded-2xl border border-[var(--border)] shadow-sm overflow-hidden">
+<div class="p-6 lg:p-8 border-b border-[var(--border)]">
+<h3 class="serif text-2xl mb-1">Education Hubs</h3>
+<p class="text-sm text-[var(--text-secondary)]">Institutions ranked by number of founders produced in this sector.</p>
+</div>
+<div class="overflow-x-auto">
+<table class="ptable" id="edu-table"><thead><tr>
+<th class="w-14 pl-6">Rank</th><th>Institution</th><th>Founders</th><th class="pr-6"></th>
+</tr></thead><tbody></tbody></table>
+</div>
+</div>
+</div>
+
+<!-- EMPLOYER PIPELINES -->
+<div class="tab-content" id="tab-employers">
+<div class="bg-white rounded-2xl border border-[var(--border)] shadow-sm overflow-hidden">
+<div class="p-6 lg:p-8 border-b border-[var(--border)]">
+<h3 class="serif text-2xl mb-1">Employer Pipelines</h3>
+<p class="text-sm text-[var(--text-secondary)]">Prior employers ranked by number of founders they spawned — the "mafia" sources.</p>
+</div>
+<div class="overflow-x-auto">
+<table class="ptable" id="emp-table"><thead><tr>
+<th class="w-14 pl-6">Rank</th><th>Employer</th><th>Founders</th><th class="pr-6"></th>
+</tr></thead><tbody></tbody></table>
+</div>
+</div>
+</div>
+
+<!-- FOUNDER CLUSTERS -->
+<div class="tab-content" id="tab-clusters">
+<div class="space-y-5" id="clusters-list"></div>
+</div>
+
+<!-- TALENT FLOWS -->
+<div class="tab-content" id="tab-flows">
+<div class="bg-white rounded-2xl border border-[var(--border)] shadow-sm overflow-hidden">
+<div class="p-6 lg:p-8 border-b border-[var(--border)]">
+<h3 class="serif text-2xl mb-1">Talent Flows</h3>
+<p class="text-sm text-[var(--text-secondary)]">How talent moves from established companies to founding new startups.</p>
+</div>
+<div class="overflow-x-auto">
+<table class="ptable" id="flows-table"><thead><tr>
+<th class="pl-6">From</th><th>To</th><th>Founders</th><th class="w-16 pr-6">#</th>
+</tr></thead><tbody></tbody></table>
+</div>
+</div>
+</div>
+
+<!-- NETWORK CONNECTORS -->
+<div class="tab-content" id="tab-centrality">
+<div class="bg-white rounded-2xl border border-[var(--border)] shadow-sm overflow-hidden">
+<div class="p-6 lg:p-8 border-b border-[var(--border)]">
+<h3 class="serif text-2xl mb-1">Network Connectors</h3>
+<p class="text-sm text-[var(--text-secondary)]">Founders ranked by betweenness centrality — individuals who bridge multiple clusters and networks.</p>
+</div>
+<div class="overflow-x-auto">
+<table class="ptable" id="centrality-table"><thead><tr>
+<th class="w-14 pl-6">Rank</th><th>Founder</th><th>Centrality</th><th class="pr-6"></th>
+</tr></thead><tbody></tbody></table>
+</div>
+</div>
+</div>
+
+<!-- GEOGRAPHY -->
+<div class="tab-content" id="tab-geo">
+<div class="bg-white rounded-2xl border border-[var(--border)] shadow-sm overflow-hidden">
+<div class="p-6 lg:p-8 border-b border-[var(--border)]">
+<h3 class="serif text-2xl mb-1">Geographic Distribution</h3>
+<p class="text-sm text-[var(--text-secondary)]">Company headquarters by city.</p>
+</div>
+<div class="overflow-x-auto">
+<table class="ptable" id="geo-table"><thead><tr>
+<th class="w-14 pl-6">Rank</th><th>City</th><th>Companies</th><th>Share</th><th class="pr-6"></th>
+</tr></thead><tbody></tbody></table>
+</div>
+</div>
+</div>
+
+<!-- FULL MATRIX -->
+<div class="tab-content" id="tab-matrix">
+<div class="bg-white rounded-2xl border border-[var(--border)] shadow-sm overflow-hidden">
+<div class="p-6 lg:p-8 border-b border-[var(--border)]">
+<h3 class="serif text-2xl mb-1">Full Founder Matrix</h3>
+<p class="text-sm text-[var(--text-secondary)]" id="matrix-subtitle">All founders with education and work history — verified data marked.</p>
+</div>
+<div class="overflow-x-auto">
+<table class="ptable" id="matrix-table"><thead><tr>
+<th class="pl-6">Founder</th><th>Company</th><th>Education</th><th>Prior Work</th><th class="pr-6">Source</th>
+</tr></thead><tbody></tbody></table>
+</div>
+</div>
+</div>
+
+</div>
+</main>
+</div>
+
+<script>
+// ===================================================================
+// Data from pipeline
+// ===================================================================
+var SECTORS = {{ sectors_json }};
+var SECTOR_DATA = {{ all_sector_data_json }};
+var currentSector = '{{ active_sector }}';
+
+// Current sector data (populated by loadSectorData)
+var eduHubs = [];
+var empPipes = [];
+var centrality = [];
+var clusters = [];
+var flows = [];
+var geo = [];
+var matrixData = [];
+var insights = [];
+var totalCompanies = 0;
+var totalFounders = 0;
+var totalEdges = 0;
+var numClusters = 0;
+var sectorDisplayName = '';
+
+// ===================================================================
+// Sector data loading
+// ===================================================================
+function loadSectorData(sectorId) {
+  var d = SECTOR_DATA[sectorId];
+  if (!d) return false;
+  eduHubs = d.edu_hubs || [];
+  empPipes = d.employer_pipes || [];
+  centrality = d.centrality || [];
+  clusters = d.clusters || [];
+  flows = d.flows || [];
+  geo = d.geo || [];
+  matrixData = d.matrix || [];
+  insights = d.insights || [];
+  totalCompanies = d.total_companies || 0;
+  totalFounders = d.total_founders || 0;
+  totalEdges = d.total_edges || 0;
+  numClusters = d.num_clusters || 0;
+  sectorDisplayName = d.sector_name || sectorId;
+  return true;
+}
+
+// ===================================================================
+// Sector selector rendering
+// ===================================================================
+function renderSectorNav() {
+  var desktop = document.getElementById('sector-nav');
+  var mobile = document.getElementById('mobile-sector-nav');
+  var html = SECTORS.map(function(s) {
+    var cls = 'sector-chip';
+    if (s.id === currentSector) cls += ' active';
+    if (!s.has_data) cls += ' disabled';
+    var onclick = s.has_data ? ' onclick="switchSector(\'' + s.id + '\')"' : '';
+    return '<div class="' + cls + '" data-sector="' + s.id + '"' + onclick + '>'
+      + '<span class="material-symbols-outlined">' + s.icon + '</span>'
+      + '<span>' + s.name + '</span>'
+      + '</div>';
+  }).join('');
+  if (desktop) desktop.innerHTML = html;
+  if (mobile) mobile.innerHTML = html;
+}
+
+function updateSectorSelector() {
+  document.querySelectorAll('.sector-chip').forEach(function(el) {
+    el.classList.toggle('active', el.dataset.sector === currentSector);
+  });
+}
+
+// ===================================================================
+// Switch sector
+// ===================================================================
+function switchSector(sectorId) {
+  if (sectorId === currentSector) return;
+  if (!loadSectorData(sectorId)) return;
+  currentSector = sectorId;
+  updateSectorSelector();
+  updateStatCards();
+  document.title = sectorDisplayName + ' \u2014 Founder Networks';
+  renderAll();
+  switchTab('insights');
+}
+
+// ===================================================================
+// Stat cards
+// ===================================================================
+function updateStatCards() {
+  document.getElementById('stat-companies').textContent = totalCompanies;
+  document.getElementById('stat-founders').textContent = totalFounders;
+  document.getElementById('stat-edges').textContent = totalEdges;
+  document.getElementById('stat-clusters').textContent = numClusters;
+}
+
+// ===================================================================
+// Tab headers (dynamic based on current data)
+// ===================================================================
+function getHeaders() {
+  return {
+    insights: {title:'Key Insights', desc:'Strategic findings from network analysis across ' + totalFounders + ' founders and ' + totalCompanies + ' companies.'},
+    education: {title:'Education Hubs', desc:'Which institutions produce the most founders? The IIT system, elite MBAs, and emerging colleges.'},
+    employers: {title:'Employer Pipelines', desc:'The companies that spawned entire founder ecosystems \u2014 the \u201cmafia\u201d sources.'},
+    clusters: {title:'Founder Clusters', desc:'Tightly connected groups detected via community analysis \u2014 shared education, employers, or co-founding.'},
+    flows: {title:'Talent Flows', desc:'Tracing employer-to-startup pipelines. Where do founders come from?'},
+    centrality: {title:'Network Connectors', desc:'The individuals who bridge multiple founder networks \u2014 the hidden power brokers.'},
+    geo: {title:'Geographic Distribution', desc:'Where the companies are headquartered \u2014 city-level breakdown.'},
+    matrix: {title:'Full Founder Matrix', desc:totalFounders + ' founders across ' + totalCompanies + ' companies with education and work history.'}
+  };
+}
+
+// ===================================================================
+// Tab switching
+// ===================================================================
+var currentTab = 'insights';
+
+function switchTab(tabId) {
+  currentTab = tabId;
+  document.querySelectorAll('.tab-content').forEach(function(t) { t.classList.remove('active'); });
+  var el = document.getElementById('tab-' + tabId);
+  if (el) el.classList.add('active');
+  document.querySelectorAll('#sidebar-nav .side-link').forEach(function(n) {
+    n.classList.toggle('active', n.dataset.tab === tabId);
+  });
+  var headers = getHeaders();
+  var h = headers[tabId];
+  if (h) {
+    document.querySelector('#page-header h2').textContent = h.title;
+    document.getElementById('header-desc').textContent = h.desc;
+  }
+  // Update mobile nav active state
+  document.querySelectorAll('#mobile-nav button').forEach(function(b) {
+    if (b.dataset.tab === tabId) {
+      b.className = 'text-sm font-medium whitespace-nowrap text-[var(--text-primary)] border-b-2 border-[var(--text-primary)] pb-1';
+    } else {
+      b.className = 'text-sm font-medium whitespace-nowrap text-[var(--text-secondary)]';
+    }
+  });
+}
+
+document.querySelectorAll('#sidebar-nav .side-link').forEach(function(el) {
+  el.addEventListener('click', function() { switchTab(this.dataset.tab); });
+});
+document.querySelectorAll('#mobile-nav button').forEach(function(el) {
+  el.addEventListener('click', function() { switchTab(this.dataset.tab); });
+});
+
+// ===================================================================
+// Insight icons & pill colors
+// ===================================================================
+var INSIGHT_ICONS = {
+  education_hub: 'account_balance',
+  employer_pipeline: 'corporate_fare',
+  bridge_founder: 'share',
+  cluster: 'hub',
+  talent_flow: 'swap_horiz'
+};
+var INSIGHT_PILLS = {
+  education_hub: 'pill-blue',
+  employer_pipeline: 'pill-purple',
+  bridge_founder: 'pill-gold',
+  cluster: 'pill-green',
+  talent_flow: 'pill-rose'
+};
+
+// ===================================================================
+// Render functions
+// ===================================================================
+
+function renderInsights() {
+  var grid = document.getElementById('insights-grid');
+  if (!insights.length) {
+    grid.innerHTML = '<div class="empty-state col-span-2"><span class="material-symbols-outlined">lightbulb</span><p class="text-[var(--text-secondary)]">No insight data available for this sector yet.</p></div>';
+    return;
+  }
+  grid.innerHTML = insights.map(function(ins) {
+    var icon = INSIGHT_ICONS[ins.category] || 'lightbulb';
+    return '<div class="insight-card">'
+      + '<div class="flex items-center gap-3 mb-3">'
+      + '<span class="material-symbols-outlined text-[var(--accent-gold)] text-xl">' + icon + '</span>'
+      + '<span class="pill ' + (INSIGHT_PILLS[ins.category] || 'pill-gray') + ' text-[10px] uppercase tracking-wide">' + ins.category.replace(/_/g, ' ') + '</span>'
+      + '</div>'
+      + '<h4 class="font-semibold text-base mb-2">' + ins.title + '</h4>'
+      + '<p class="text-sm text-[var(--text-secondary)] leading-relaxed">' + ins.detail + '</p>'
+      + '</div>';
+  }).join('');
+}
+
+function renderEducation() {
+  var tbody = document.querySelector('#edu-table tbody');
+  if (!eduHubs.length) { tbody.innerHTML = '<tr><td colspan="4" class="text-center py-12 text-[var(--text-secondary)]">No education data available.</td></tr>'; return; }
+  var mx = eduHubs[0].founder_count;
+  tbody.innerHTML = eduHubs.map(function(d, i) {
+    var pct = Math.round(d.founder_count / mx * 100);
+    return '<tr>'
+      + '<td class="pl-6 mono text-[var(--text-secondary)] text-sm">' + (i < 9 ? '0' : '') + (i + 1) + '</td>'
+      + '<td><div class="font-semibold text-[15px]">' + d.institution + '</div></td>'
+      + '<td><span class="serif text-lg">' + d.founder_count + '</span></td>'
+      + '<td class="pr-6 w-48"><div class="bar-bg"><div class="bar-fill bg-amber-400" style="width:' + pct + '%"></div></div></td>'
+      + '</tr>';
+  }).join('');
+}
+
+function renderEmployers() {
+  var tbody = document.querySelector('#emp-table tbody');
+  if (!empPipes.length) { tbody.innerHTML = '<tr><td colspan="4" class="text-center py-12 text-[var(--text-secondary)]">No employer data available.</td></tr>'; return; }
+  var mx = empPipes[0].founder_count;
+  tbody.innerHTML = empPipes.map(function(d, i) {
+    var pct = Math.round(d.founder_count / mx * 100);
+    return '<tr>'
+      + '<td class="pl-6 mono text-[var(--text-secondary)] text-sm">' + (i < 9 ? '0' : '') + (i + 1) + '</td>'
+      + '<td><div class="font-semibold text-[15px]">' + d.employer + '</div></td>'
+      + '<td><span class="serif text-lg">' + d.founder_count + '</span></td>'
+      + '<td class="pr-6 w-48"><div class="bar-bg"><div class="bar-fill bg-violet-400" style="width:' + pct + '%"></div></div></td>'
+      + '</tr>';
+  }).join('');
+}
+
+function renderClusters() {
+  var list = document.getElementById('clusters-list');
+  if (!clusters.length) {
+    list.innerHTML = '<div class="empty-state"><span class="material-symbols-outlined">hub</span><p class="text-[var(--text-secondary)]">No cluster data available for this sector yet.</p></div>';
+    return;
+  }
+  list.innerHTML = clusters.map(function(c, i) {
+    var ctx = c.dominant_context.map(function(d) { return d.entity + ' (' + d.count + ')'; }).join(', ');
+    var members = c.members.map(function(m) {
+      return '<span class="pill pill-gray mr-1 mb-1">' + m + '</span>';
+    }).join('');
+    return '<div class="network-card">'
+      + '<div class="flex items-center gap-3 mb-4">'
+      + '<span class="material-symbols-outlined text-[var(--accent-blue)] text-xl">hub</span>'
+      + '<h4 class="font-semibold text-base">Cluster ' + (i + 1) + ' \u2014 ' + c.size + ' founders</h4>'
+      + '<span class="pill pill-gold border border-[#E8DAB2] text-[10px]">' + c.size + ' MEMBERS</span>'
+      + '</div>'
+      + '<p class="text-xs text-[var(--text-secondary)] mb-3">Dominant context: ' + ctx + '</p>'
+      + '<div class="flex flex-wrap">' + members + '</div>'
+      + '</div>';
+  }).join('');
+}
+
+function renderFlows() {
+  var tbody = document.querySelector('#flows-table tbody');
+  if (!flows.length) { tbody.innerHTML = '<tr><td colspan="4" class="text-center py-12 text-[var(--text-secondary)]">No talent flow data available.</td></tr>'; return; }
+  tbody.innerHTML = flows.map(function(f) {
+    var founders = f.founders.map(function(n) {
+      return '<span class="pill pill-gray mr-1 mb-1">' + n + '</span>';
+    }).join('');
+    return '<tr>'
+      + '<td class="pl-6"><div class="font-semibold">' + f.from_employer + '</div></td>'
+      + '<td><div class="font-semibold">' + f.to_company + '</div></td>'
+      + '<td><div class="flex flex-wrap">' + founders + '</div></td>'
+      + '<td class="pr-6"><span class="mono text-sm font-bold text-amber-600 bg-amber-50 px-2 py-0.5 rounded">' + f.count + 'x</span></td>'
+      + '</tr>';
+  }).join('');
+}
+
+function renderCentrality() {
+  var tbody = document.querySelector('#centrality-table tbody');
+  if (!centrality.length) { tbody.innerHTML = '<tr><td colspan="4" class="text-center py-12 text-[var(--text-secondary)]">No centrality data available.</td></tr>'; return; }
+  var mx = centrality[0].centrality || 1;
+  tbody.innerHTML = centrality.map(function(d, i) {
+    var pct = Math.round(d.centrality / mx * 100);
+    return '<tr>'
+      + '<td class="pl-6 mono text-[var(--text-secondary)] text-sm">' + (i < 9 ? '0' : '') + (i + 1) + '</td>'
+      + '<td><div class="font-semibold text-[15px]">' + d.name + '</div></td>'
+      + '<td><span class="mono text-sm">' + d.centrality + '</span></td>'
+      + '<td class="pr-6 w-48"><div class="bar-bg"><div class="bar-fill bg-blue-400" style="width:' + pct + '%"></div></div></td>'
+      + '</tr>';
+  }).join('');
+}
+
+function renderGeo() {
+  var tbody = document.querySelector('#geo-table tbody');
+  if (!geo.length) { tbody.innerHTML = '<tr><td colspan="5" class="text-center py-12 text-[var(--text-secondary)]">No geographic data available.</td></tr>'; return; }
+  var mx = geo[0].count;
+  tbody.innerHTML = geo.map(function(d, i) {
+    var pct = Math.round(d.count / mx * 100);
+    return '<tr>'
+      + '<td class="pl-6 mono text-[var(--text-secondary)] text-sm">' + (i < 9 ? '0' : '') + (i + 1) + '</td>'
+      + '<td><div class="font-semibold text-[15px]">' + d.city + '</div></td>'
+      + '<td><span class="serif text-lg">' + d.count + '</span></td>'
+      + '<td><span class="pill pill-gray">' + d.pct + '%</span></td>'
+      + '<td class="pr-6 w-36"><div class="bar-bg"><div class="bar-fill bg-emerald-400" style="width:' + pct + '%"></div></div></td>'
+      + '</tr>';
+  }).join('');
+}
+
+function renderMatrix() {
+  var tbody = document.querySelector('#matrix-table tbody');
+  if (!matrixData.length) { tbody.innerHTML = '<tr><td colspan="5" class="text-center py-12 text-[var(--text-secondary)]">No founder data available.</td></tr>'; return; }
+  document.getElementById('matrix-subtitle').textContent = totalFounders + ' founders across ' + totalCompanies + ' companies \u2014 verified data marked.';
+  tbody.innerHTML = matrixData.map(function(d) {
+    var badge = d.verified
+      ? '<span class="verified-badge ml-2">VERIFIED</span>'
+      : '';
+    var source = d.verified
+      ? '<span class="pill pill-green">Manual</span>'
+      : '<span class="pill pill-blue">Tracxn</span>';
+    return '<tr>'
+      + '<td class="pl-6"><div class="font-semibold">' + d.name + badge + '</div></td>'
+      + '<td>' + d.company + '</td>'
+      + '<td class="text-[var(--text-secondary)]">' + d.edu + '</td>'
+      + '<td class="text-[var(--text-secondary)]">' + d.work + '</td>'
+      + '<td class="pr-6">' + source + '</td>'
+      + '</tr>';
+  }).join('');
+}
+
+function renderAll() {
+  renderInsights();
+  renderEducation();
+  renderEmployers();
+  renderClusters();
+  renderFlows();
+  renderCentrality();
+  renderGeo();
+  renderMatrix();
+}
+
+// ===================================================================
+// Initial render
+// ===================================================================
+renderSectorNav();
+loadSectorData(currentSector);
+updateStatCards();
+document.title = sectorDisplayName + ' \u2014 Founder Networks';
+renderAll();
+</script>
+</body>
+</html>

@@ -1,0 +1,43 @@
+# Sector configuration: Indian SaaS
+# B2B software, developer tools, enterprise platforms.
+
+name: "Indian SaaS"
+sector: "SaaS"
+country: "India"
+description: "Indian SaaS startups — founder network mapping"
+
+filters:
+  min_funding: 5000000
+  founded_after: 2008
+  limit: 200
+  enrich_domains: false
+
+tracked_institutions:
+  - "IIT Madras"
+  - "IIT Delhi"
+  - "IIT Bombay"
+  - "IIT Kharagpur"
+  - "BITS Pilani"
+  - "IIM Ahmedabad"
+  - "IIM Bangalore"
+  - "ISB Hyderabad"
+  - "PSG College of Technology"
+  - "College of Engineering Guindy"
+  - "NIT Trichy"
+
+tracked_employers:
+  - "Zoho"
+  - "Freshworks"
+  - "Flipkart"
+  - "Amazon"
+  - "Google"
+  - "Microsoft"
+  - "Salesforce"
+  - "McKinsey"
+  - "Infosys"
+  - "Cognizant"
+
+analysis:
+  min_cluster_size: 3
+  top_n_hubs: 15
+  top_n_bridges: 10

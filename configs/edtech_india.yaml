@@ -1,0 +1,36 @@
+# Sector configuration: Indian EdTech
+# Another sector extension example.
+
+name: "Indian EdTech"
+sector: "EdTech"
+country: "India"
+description: "Indian EdTech startups — founder network mapping"
+
+filters:
+  min_funding: 5000000
+  founded_after: 2008
+  limit: 150
+
+tracked_institutions:
+  - "IIT Delhi"
+  - "IIT Bombay"
+  - "IIT Kanpur"
+  - "IIT Madras"
+  - "BITS Pilani"
+  - "IIM Ahmedabad"
+  - "IIM Bangalore"
+  - "ISB Hyderabad"
+
+tracked_employers:
+  - "Flipkart"
+  - "Amazon"
+  - "Google"
+  - "McKinsey"
+  - "TCS"
+  - "Infosys"
+  - "Byju's"
+
+analysis:
+  min_cluster_size: 3
+  top_n_hubs: 15
+  top_n_bridges: 10

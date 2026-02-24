@@ -1,0 +1,37 @@
+# Sector configuration: Indian HealthTech
+# Example of extending to another sector.
+
+name: "Indian HealthTech"
+sector: "HealthTech"
+country: "India"
+description: "Indian HealthTech startups — founder network mapping"
+
+filters:
+  min_funding: 5000000
+  founded_after: 2010
+  limit: 150
+
+tracked_institutions:
+  - "IIT Delhi"
+  - "IIT Bombay"
+  - "IIT Madras"
+  - "AIIMS Delhi"
+  - "BITS Pilani"
+  - "IIM Ahmedabad"
+  - "IIM Bangalore"
+  - "ISB Hyderabad"
+  - "Manipal University"
+
+tracked_employers:
+  - "Flipkart"
+  - "Amazon"
+  - "Google"
+  - "McKinsey"
+  - "Max Healthcare"
+  - "Apollo Hospitals"
+  - "Practo"
+
+analysis:
+  min_cluster_size: 3
+  top_n_hubs: 15
+  top_n_bridges: 10
