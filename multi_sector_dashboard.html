@@ -289,7 +289,14 @@ h1,h2,h3,.serif{font-family:'DM Serif Display',serif}
 <input type="password" id="api-key-input" class="s-input" style="padding-right:60px" placeholder="Enter your Tracxn access token" />
 <button onclick="toggleApiKeyVisibility()" class="absolute right-2 top-1/2 -translate-y-1/2 text-xs text-[var(--text-secondary)] hover:text-[var(--text-primary)] px-2 py-1 rounded" id="api-key-toggle">Show</button>
 </div>
-<p class="text-[11px] text-[var(--text-secondary)] mt-1.5">Stored locally in your browser only. Never sent anywhere except Tracxn's API.</p>
+<p class="text-[11px] text-[var(--text-secondary)] mt-1.5">Stored locally in your browser only. Routed via CORS proxy to reach Tracxn's API from the browser.</p>
+</div>
+
+<!-- CORS Proxy -->
+<div>
+<label class="text-[11px] font-bold text-[var(--text-secondary)] uppercase tracking-[.1em] mb-2 block">CORS Proxy URL</label>
+<input type="text" id="cors-proxy-input" class="s-input" placeholder="https://corsproxy.io/?url=" />
+<p class="text-[11px] text-[var(--text-secondary)] mt-1.5">Tracxn's API blocks browser requests (CORS). This proxy relays your requests. Default: corsproxy.io</p>
 </div>
 
 <!-- Valuation Threshold -->
@@ -661,11 +668,9 @@ renderAll();
 
 var SETTINGS_KEY = 'fn_tracxn_settings';
 var TRACXN_API_BASE = 'https://platform.tracxn.com/api/2.2/playground';
-var TRACXN_SECTOR_MAP = {
-  'fintech':'FinTech','consumer_tech':'Consumer Tech','edtech':'EdTech',
-  'saas':'SaaS','deeptech':'DeepTech','climate':'Climate Tech',
-  'logistics':'Logistics','healthtech':'HealthTech'
-};
+var CORS_PROXY = (function() { try { var s = JSON.parse(localStorage.getItem('fn_tracxn_settings') || '{}'); return s.corsProxy || 'https://corsproxy.io/?url='; } catch(e) { return 'https://corsproxy.io/?url='; } })();
+var TRACXN_SECTOR_MAP = {};
+var TRACXN_FEEDS_LOADED = false;
 
 // --- Settings persistence ---
 function getSettings() {
@@ -690,10 +695,13 @@ function saveValuationFromUI() {
 }
 
 // --- Modal controls ---
+function getCorsProxy() { return getSettings().corsProxy || 'https://corsproxy.io/?url='; }
+
 function openSettings() {
   var modal = document.getElementById('settings-overlay');
   modal.classList.add('open');
   document.getElementById('api-key-input').value = getApiKey();
+  document.getElementById('cors-proxy-input').value = getCorsProxy();
   var valThresh = getValuationThreshold();
   var sel = document.getElementById('valuation-select');
   var found = false;
@@ -711,6 +719,8 @@ function openSettings() {
 function closeSettings() {
   document.getElementById('settings-overlay').classList.remove('open');
   saveSetting('apiKey', document.getElementById('api-key-input').value);
+  var proxyVal = document.getElementById('cors-proxy-input').value.trim();
+  if (proxyVal && proxyVal !== CORS_PROXY) { saveSetting('corsProxy', proxyVal); CORS_PROXY = proxyVal; TRACXN_FEEDS_LOADED = false; }
   saveValuationFromUI();
 }
 
@@ -777,25 +787,54 @@ function fnDeepGet(o, path, def) {
 async function tracxnPost(endpoint, body) {
   var apiKey = document.getElementById('api-key-input').value;
   if (!apiKey) throw new Error('API key is required');
-  var resp = await fetch(TRACXN_API_BASE + '/' + endpoint, {
+  var targetUrl = TRACXN_API_BASE + '/' + endpoint;
+  // Build proxy URL: if proxy contains '?url=' use encodeURIComponent, otherwise append directly
+  var fetchUrl;
+  if (CORS_PROXY.indexOf('?url=') >= 0 || CORS_PROXY.indexOf('?quest=') >= 0) {
+    fetchUrl = CORS_PROXY + encodeURIComponent(targetUrl);
+  } else {
+    fetchUrl = CORS_PROXY + targetUrl;
+  }
+  var resp = await fetch(fetchUrl, {
     method: 'POST',
     headers: { 'accesstoken': apiKey, 'Content-Type': 'application/json' },
     body: JSON.stringify(body)
   });
   if (!resp.ok) {
     var txt = ''; try { txt = await resp.text(); } catch(e) {}
+    if (resp.status === 403 && txt.indexOf('Cloudflare') >= 0) {
+      throw new Error('CORS proxy blocked by Cloudflare. Try a different proxy URL in Data Settings (e.g. a self-hosted proxy or browser extension).');
+    }
     throw new Error('Tracxn API error ' + resp.status + ': ' + txt.substring(0, 200));
   }
   return resp.json();
 }
 
-async function tracxnFetchCompanies(feedName, limit) {
+async function tracxnLoadFeeds() {
+  if (TRACXN_FEEDS_LOADED) return;
+  logStatus('Discovering available feeds from your API key...');
+  var data = await tracxnPost('feeds', {});
+  var feeds = data.result || data.feeds || data.items || [];
+  if (!Array.isArray(feeds)) feeds = [];
+  TRACXN_SECTOR_MAP = {};
+  feeds.forEach(function(f) {
+    var name = f.name || '';
+    if (name) TRACXN_SECTOR_MAP[fnSlug(name)] = name;
+  });
+  TRACXN_FEEDS_LOADED = true;
+  logStatus('Available feeds: ' + (feeds.length ? feeds.map(function(f){return f.name;}).join(', ') : 'none'));
+}
+
+async function tracxnFetchCompanies(feedName, limit, countryFilter) {
   var results = [], offset = 0, pageSize = 20;
   while (results.length < limit) {
     var batchSize = Math.min(pageSize, limit - results.length);
     logStatus('Fetching companies ' + (offset + 1) + '\u2013' + (offset + batchSize) + '...');
+    var filter = {};
+    if (feedName) filter.feedName = [feedName];
+    if (countryFilter) filter.country = [countryFilter];
     var data = await tracxnPost('companies', {
-      filter: { feedName: [feedName] }, size: batchSize, from: offset
+      filter: filter, size: batchSize, from: offset
     });
     var items = data.result || data.items || [];
     if (typeof items === 'object' && !Array.isArray(items)) items = items.items || [];
@@ -818,41 +857,87 @@ function normalizeRawCompany(raw) {
   var funding = fnDeepGet(raw, 'totalEquityFunding.amount.USD.value')
     || fnDeepGet(raw, 'totalFunding.amount.USD.value')
     || raw.totalFundingAmountUSD || raw.totalFunding || raw.totalFundingAmount;
-  var city = raw.hqCity || raw.city || 'Unknown';
-  var country = raw.hqCountry || raw.country || 'India';
-  var people = raw.people || raw.founders || raw.keyPeople || [];
+  // Tracxn v2.2 location structure
+  var city = fnDeepGet(raw, 'location.city') || raw.hqCity || raw.city || 'Unknown';
+  var country = fnDeepGet(raw, 'location.country') || raw.hqCountry || raw.country || 'Unknown';
+  // Tracxn v2.2 returns people in employeeInfo.employeeList
+  var people = fnDeepGet(raw, 'employeeInfo.employeeList') || raw.people || raw.founders || raw.keyPeople || [];
+  // Filter to key people / founding members
+  var keyPeople = (Array.isArray(people) ? people : []).filter(function(p) {
+    return typeof p === 'object' && (p.isKeyPeople || p.isFoundingMember);
+  });
+  if (!keyPeople.length) keyPeople = Array.isArray(people) ? people : [];
   var founderNames = [];
-  (Array.isArray(people) ? people : []).forEach(function(p) {
+  keyPeople.forEach(function(p) {
     var pn = typeof p === 'object' ? (p.name || p.fullName || '') : String(p);
     if (pn) founderNames.push(pn);
   });
   var companySlug = fnSlug(name);
+  // Use tracxnScore as a ranking proxy when valuation/funding aren't available
+  var score = raw.tracxnScore || 0;
   return {
     id: companySlug, name: name, city: city, country: country,
     valuation: valuation ? parseInt(valuation) : null,
     funding: funding ? parseInt(funding) : null,
+    tracxnScore: score,
     founded: (raw.foundedYear || raw.yearFounded) ? parseInt(raw.foundedYear || raw.yearFounded) : null,
     founderNames: founderNames,
     founderSlugs: founderNames.map(function(n) { return fnSlug(n + '-' + companySlug); }),
-    rawPeople: people
+    rawPeople: keyPeople
   };
+}
+
+function parseShortBio(shortBio) {
+  var education = [], work = [];
+  if (!shortBio || typeof shortBio !== 'string') return { education: education, work: work };
+  // shortBio format: "Role-Company | Ex-Company1,Company2 | School Year"
+  var parts = shortBio.split('|').map(function(s) { return s.trim(); });
+  parts.forEach(function(part) {
+    // Education: look for known patterns (university names, years at end)
+    var eduMatch = part.match(/^(.+?)\s+(\d{4})(?:\s*,\s*(\w+)\s+(\d{4}))?$/);
+    if (eduMatch) {
+      education.push({ institution: eduMatch[1].trim(), degree: '', field: '', year: parseInt(eduMatch[2]) });
+      if (eduMatch[3]) education.push({ institution: eduMatch[3].trim(), degree: '', field: '', year: parseInt(eduMatch[4]) });
+      return;
+    }
+    // "Ex-" prefix indicates previous work
+    if (part.indexOf('Ex-') === 0) {
+      part.substring(3).split(',').forEach(function(comp) {
+        comp = comp.trim();
+        if (comp) work.push({ company: comp, role: '' });
+      });
+    }
+  });
+  return { education: education, work: work };
 }
 
 function normalizeRawFounder(rawPerson, companyName, companySlug) {
   var name = typeof rawPerson === 'object' ? (rawPerson.name || rawPerson.fullName || 'Unknown') : String(rawPerson);
   var education = [];
+  var work = [];
+
+  // Try structured education data first
   (rawPerson.education || []).forEach(function(ed) {
     if (typeof ed === 'object') {
       education.push({ institution: ed.institution || ed.school || '', degree: ed.degree || '', field: ed.field || ed.fieldOfStudy || '', year: ed.year || ed.endYear || null });
     } else if (typeof ed === 'string') { education.push({ institution: ed, degree: '', field: '', year: null }); }
   });
-  var work = [];
+  // Try structured work data first
   (rawPerson.workExperience || rawPerson.experience || []).forEach(function(w) {
     if (typeof w === 'object') {
       work.push({ company: w.company || w.organization || '', role: w.role || w.title || '' });
     } else if (typeof w === 'string') { work.push({ company: w, role: '' }); }
   });
-  return { id: fnSlug(name + '-' + companySlug), name: name, company: companyName, companySlug: companySlug, education: education, work: work, verified: false };
+
+  // Fallback: parse shortBio if no structured data
+  if (!education.length && !work.length && rawPerson.shortBio) {
+    var parsed = parseShortBio(rawPerson.shortBio);
+    education = parsed.education;
+    work = parsed.work;
+  }
+
+  var designation = rawPerson.designation || '';
+  return { id: fnSlug(name + '-' + companySlug), name: name, company: companyName, companySlug: companySlug, designation: designation, education: education, work: work, verified: false };
 }
 
 // ===================================================================
@@ -1085,28 +1170,44 @@ async function fetchSector(sectorId) {
     saveSetting('apiKey', apiKey);
     saveValuationFromUI();
 
-    var feedName = TRACXN_SECTOR_MAP[sectorId];
-    if (!feedName) throw new Error('Unknown sector: ' + sectorId);
+    // Discover available feeds from API key
+    await tracxnLoadFeeds();
+
+    var feedNames = Object.keys(TRACXN_SECTOR_MAP);
+    if (!feedNames.length) throw new Error('No feeds available on your API key. Check your Tracxn subscription.');
+
+    // Try to match sectorId to a feed, otherwise use first available feed
+    var sectorMeta = SECTORS.find(function(s) { return s.id === sectorId; });
+    var sectorName = sectorMeta ? sectorMeta.name : sectorId;
+    var feedName = TRACXN_SECTOR_MAP[fnSlug(sectorName)] || TRACXN_SECTOR_MAP[sectorId] || null;
+
+    // If no exact match, use the first available feed
+    if (!feedName) {
+      feedName = TRACXN_SECTOR_MAP[feedNames[0]];
+      logStatus('No "' + sectorName + '" feed on your key. Using available feed: ' + feedName);
+    }
 
     var valThreshold = getValuationThreshold();
-    logStatus('Sector: ' + feedName + ' | Valuation: $' + (valThreshold / 1000000) + 'M+');
+    logStatus('Feed: ' + feedName + ' | Valuation: $' + (valThreshold / 1000000) + 'M+');
 
-    // Fetch companies from Tracxn
+    // Fetch companies from Tracxn (via CORS proxy)
     var rawCompanies;
     try {
       rawCompanies = await tracxnFetchCompanies(feedName, 200);
     } catch (err) {
       if (err.message && (err.message.indexOf('Failed to fetch') >= 0 || err.message.indexOf('NetworkError') >= 0)) {
-        throw new Error('Network/CORS error: The Tracxn API may block browser requests. Try the Python pipeline (python run.py fetch) or a CORS proxy browser extension.');
+        throw new Error('Network error: Unable to reach the Tracxn API via CORS proxy. Please try again.');
       }
       throw err;
     }
     logStatus('Received ' + rawCompanies.length + ' companies from API');
 
     // Normalize & filter by valuation
-    var companies = rawCompanies.map(normalizeRawCompany);
-    var preCount = companies.length;
-    companies = companies.filter(function(c) {
+    var allCompanies = rawCompanies.map(normalizeRawCompany);
+    var preCount = allCompanies.length;
+
+    // First try valuation filter
+    var companies = allCompanies.filter(function(c) {
       return c.valuation && c.valuation >= valThreshold;
     });
     logStatus('Valuation filter: ' + companies.length + ' of ' + preCount + ' companies above $' + (valThreshold / 1000000) + 'M');
@@ -1114,12 +1215,27 @@ async function fetchSector(sectorId) {
     // Fallback: use funding as proxy if no valuation data
     if (!companies.length) {
       logStatus('No valuation data found. Trying funding amount as proxy...');
-      companies = rawCompanies.map(normalizeRawCompany).filter(function(c) {
+      companies = allCompanies.filter(function(c) {
         return (c.valuation && c.valuation >= valThreshold) || (c.funding && c.funding >= valThreshold / 2);
       });
       logStatus('Funding proxy: ' + companies.length + ' companies');
     }
-    if (!companies.length) throw new Error('No companies match your criteria. Try lowering the valuation threshold.');
+
+    // Final fallback: use tracxnScore to pick top companies when no valuation/funding data
+    if (!companies.length) {
+      logStatus('No valuation/funding data in API response. Using Tracxn score to rank top companies...');
+      companies = allCompanies
+        .filter(function(c) { return c.founderNames.length > 0; })
+        .sort(function(a, b) { return b.tracxnScore - a.tracxnScore; })
+        .slice(0, 50);
+      if (!companies.length) {
+        companies = allCompanies
+          .sort(function(a, b) { return b.tracxnScore - a.tracxnScore; })
+          .slice(0, 50);
+      }
+      logStatus('Score-based selection: ' + companies.length + ' top-ranked companies');
+    }
+    if (!companies.length) throw new Error('No companies returned from API. Try a different sector or check your API key.');
 
     // Extract founders
     logStatus('Extracting founders...');
