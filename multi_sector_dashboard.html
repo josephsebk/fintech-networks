@@ -59,6 +59,21 @@ h1,h2,h3,.serif{font-family:'DM Serif Display',serif}
 /* Empty state */
 .empty-state{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:80px 24px;text-align:center}
 .empty-state .material-symbols-outlined{font-size:48px;color:var(--border);margin-bottom:16px}
+
+/* Settings modal */
+.settings-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.4);z-index:100;display:flex;align-items:center;justify-content:center;opacity:0;visibility:hidden;transition:all .2s}
+.settings-overlay.open{opacity:1;visibility:visible}
+.settings-panel{background:var(--surface);border-radius:20px;width:560px;max-width:95vw;max-height:90vh;overflow-y:auto;box-shadow:0 24px 48px rgba(0,0,0,.12);transform:translateY(12px);transition:transform .2s}
+.settings-overlay.open .settings-panel{transform:translateY(0)}
+.s-input{width:100%;padding:10px 14px;border-radius:10px;border:1px solid var(--border);font-size:14px;font-family:'DM Sans',sans-serif;background:var(--bg);transition:border-color .2s;box-sizing:border-box}
+.s-input:focus{outline:none;border-color:var(--accent-gold)}
+.s-btn{padding:8px 16px;border-radius:10px;font-size:13px;font-weight:600;cursor:pointer;transition:all .15s;border:1px solid transparent;font-family:'DM Sans',sans-serif}
+.s-btn-primary{background:var(--accent-gold);color:white}.s-btn-primary:hover{background:#B08C3A}.s-btn-primary:disabled{opacity:.5;cursor:not-allowed}
+.s-btn-outline{background:transparent;color:var(--text-secondary);border-color:var(--border)}.s-btn-outline:hover{background:var(--bg);color:var(--text-primary)}
+.fetch-row{display:flex;align-items:center;justify-content:space-between;padding:8px 12px;border-radius:12px;transition:background .15s}
+.fetch-row:hover{background:var(--bg)}
+@keyframes spin{to{transform:rotate(360deg)}}
+.spin{animation:spin .8s linear infinite}
 </style>
 </head>
 <body>
@@ -89,6 +104,7 @@ h1,h2,h3,.serif{font-family:'DM Serif Display',serif}
 <div class="side-link" data-tab="geo"><span class="material-symbols-outlined text-[18px]">location_on</span>Geography</div>
 <div class="side-link" data-tab="matrix"><span class="material-symbols-outlined text-[18px]">table_chart</span>Full Matrix</div>
 </nav>
+<div class="side-link mt-2" onclick="openSettings()"><span class="material-symbols-outlined text-[18px]">settings</span>Data Settings</div>
 <div class="pt-6 mt-6 border-t border-[#E6E4DF]">
 <div class="flex items-center gap-2 mb-2 text-[10px] font-bold text-emerald-700 bg-emerald-50 px-3 py-1.5 rounded-full w-fit"><span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>PIPELINE DATA</div>
 <p class="text-[11px] text-[var(--text-secondary)] leading-relaxed">Source: Tracxn + Verified<br>Last updated Feb 2026</p>
@@ -99,6 +115,7 @@ h1,h2,h3,.serif{font-family:'DM Serif Display',serif}
 <div class="lg:hidden sticky top-0 z-40 bg-[var(--bg)] border-b border-[var(--border)]">
 <div class="px-5 py-4 flex justify-between items-center">
 <div><h1 class="serif text-lg">Founder Networks</h1><p class="text-[10px] text-[var(--text-secondary)] uppercase tracking-widest mt-0.5">Investor Intelligence</p></div>
+<button onclick="openSettings()" class="w-9 h-9 rounded-full hover:bg-[#EFEDE9] flex items-center justify-center"><span class="material-symbols-outlined text-xl text-[var(--text-secondary)]">settings</span></button>
 </div>
 <!-- Mobile sector selector -->
 <div class="px-4 py-2 border-t border-[var(--border)] bg-[#F4F2EE]">
@@ -251,6 +268,62 @@ h1,h2,h3,.serif{font-family:'DM Serif Display',serif}
 
 </div>
 </main>
+</div>
+
+<!-- SETTINGS MODAL -->
+<div id="settings-overlay" class="settings-overlay" onclick="if(event.target===this)closeSettings()">
+<div class="settings-panel">
+<div class="p-6 border-b border-[var(--border)] flex items-center justify-between">
+<div>
+<h3 class="serif text-xl">Data Settings</h3>
+<p class="text-xs text-[var(--text-secondary)] mt-1">Configure Tracxn API access and fetch parameters</p>
+</div>
+<button onclick="closeSettings()" class="w-8 h-8 rounded-full hover:bg-[var(--bg)] flex items-center justify-center transition"><span class="material-symbols-outlined text-lg">close</span></button>
+</div>
+<div class="p-6 space-y-6">
+
+<!-- API Key -->
+<div>
+<label class="text-[11px] font-bold text-[var(--text-secondary)] uppercase tracking-[.1em] mb-2 block">Tracxn API Key</label>
+<div class="relative">
+<input type="password" id="api-key-input" class="s-input" style="padding-right:60px" placeholder="Enter your Tracxn access token" />
+<button onclick="toggleApiKeyVisibility()" class="absolute right-2 top-1/2 -translate-y-1/2 text-xs text-[var(--text-secondary)] hover:text-[var(--text-primary)] px-2 py-1 rounded" id="api-key-toggle">Show</button>
+</div>
+<p class="text-[11px] text-[var(--text-secondary)] mt-1.5">Stored locally in your browser only. Never sent anywhere except Tracxn's API.</p>
+</div>
+
+<!-- Valuation Threshold -->
+<div>
+<label class="text-[11px] font-bold text-[var(--text-secondary)] uppercase tracking-[.1em] mb-2 block">Minimum Valuation Threshold</label>
+<select id="valuation-select" class="s-input" onchange="onValuationChange()">
+<option value="100000000">$100M+</option>
+<option value="250000000">$250M+</option>
+<option value="500000000" selected>$500M+ (Default)</option>
+<option value="1000000000">$1B+ (Unicorns only)</option>
+<option value="2000000000">$2B+</option>
+<option value="5000000000">$5B+</option>
+<option value="custom">Custom amount...</option>
+</select>
+<div id="custom-val-wrap" class="hidden mt-2">
+<input type="number" id="custom-val-input" class="s-input" placeholder="Enter USD amount (min 100,000,000)" min="100000000" step="50000000" />
+</div>
+<p class="text-[11px] text-[var(--text-secondary)] mt-1.5">Companies below this valuation are filtered out. Minimum $100M.</p>
+</div>
+
+<!-- Fetch actions per sector -->
+<div>
+<label class="text-[11px] font-bold text-[var(--text-secondary)] uppercase tracking-[.1em] mb-3 block">Fetch Sector Data</label>
+<div class="space-y-1" id="fetch-sector-list"></div>
+</div>
+
+<!-- Status log -->
+<div id="fetch-status" class="hidden">
+<label class="text-[11px] font-bold text-[var(--text-secondary)] uppercase tracking-[.1em] mb-2 block">Status</label>
+<div class="bg-[var(--bg)] rounded-xl p-4 max-h-48 overflow-y-auto text-[11px] leading-relaxed mono text-[var(--text-secondary)] space-y-0.5" id="status-log"></div>
+</div>
+
+</div>
+</div>
 </div>
 
 <script>
@@ -581,6 +654,571 @@ loadSectorData(currentSector);
 updateStatCards();
 document.title = sectorDisplayName + ' \u2014 Founder Networks';
 renderAll();
+
+// ===================================================================
+// Settings & Tracxn Integration
+// ===================================================================
+
+var SETTINGS_KEY = 'fn_tracxn_settings';
+var TRACXN_API_BASE = 'https://platform.tracxn.com/api/2.2/playground';
+var TRACXN_SECTOR_MAP = {
+  'fintech':'FinTech','consumer_tech':'Consumer Tech','edtech':'EdTech',
+  'saas':'SaaS','deeptech':'DeepTech','climate':'Climate Tech',
+  'logistics':'Logistics','healthtech':'HealthTech'
+};
+
+// --- Settings persistence ---
+function getSettings() {
+  try { return JSON.parse(localStorage.getItem(SETTINGS_KEY) || '{}'); }
+  catch(e) { return {}; }
+}
+function saveSetting(k, v) {
+  var s = getSettings(); s[k] = v;
+  localStorage.setItem(SETTINGS_KEY, JSON.stringify(s));
+}
+function getApiKey() { return getSettings().apiKey || ''; }
+function getValuationThreshold() { return getSettings().valuationThreshold || 500000000; }
+
+function saveValuationFromUI() {
+  var sel = document.getElementById('valuation-select');
+  var val;
+  if (sel.value === 'custom') {
+    val = parseInt(document.getElementById('custom-val-input').value) || 500000000;
+    if (val < 100000000) val = 100000000;
+  } else { val = parseInt(sel.value); }
+  saveSetting('valuationThreshold', val);
+}
+
+// --- Modal controls ---
+function openSettings() {
+  var modal = document.getElementById('settings-overlay');
+  modal.classList.add('open');
+  document.getElementById('api-key-input').value = getApiKey();
+  var valThresh = getValuationThreshold();
+  var sel = document.getElementById('valuation-select');
+  var found = false;
+  for (var i = 0; i < sel.options.length; i++) {
+    if (parseInt(sel.options[i].value) === valThresh) { sel.selectedIndex = i; found = true; break; }
+  }
+  if (!found) {
+    sel.value = 'custom';
+    document.getElementById('custom-val-wrap').classList.remove('hidden');
+    document.getElementById('custom-val-input').value = valThresh;
+  }
+  renderFetchSectorList();
+}
+
+function closeSettings() {
+  document.getElementById('settings-overlay').classList.remove('open');
+  saveSetting('apiKey', document.getElementById('api-key-input').value);
+  saveValuationFromUI();
+}
+
+function toggleApiKeyVisibility() {
+  var inp = document.getElementById('api-key-input');
+  var btn = document.getElementById('api-key-toggle');
+  if (inp.type === 'password') { inp.type = 'text'; btn.textContent = 'Hide'; }
+  else { inp.type = 'password'; btn.textContent = 'Show'; }
+}
+
+function onValuationChange() {
+  var sel = document.getElementById('valuation-select');
+  document.getElementById('custom-val-wrap').classList.toggle('hidden', sel.value !== 'custom');
+  saveValuationFromUI();
+}
+
+function renderFetchSectorList() {
+  var c = document.getElementById('fetch-sector-list');
+  c.innerHTML = SECTORS.map(function(s) {
+    var has = !!SECTOR_DATA[s.id];
+    var statusHtml = has
+      ? '<span class="pill pill-green text-[10px]">Has Data</span>'
+      : '<span class="pill pill-gray text-[10px]">No Data</span>';
+    var btnCls = has ? 's-btn s-btn-outline' : 's-btn s-btn-primary';
+    var btnTxt = has ? 'Re-fetch' : 'Fetch';
+    return '<div class="fetch-row" id="fetch-row-' + s.id + '">'
+      + '<div class="flex items-center gap-2.5">'
+      + '<span class="material-symbols-outlined text-base" style="color:' + s.color + '">' + s.icon + '</span>'
+      + '<span class="text-sm font-medium">' + s.name + '</span>'
+      + statusHtml
+      + '</div>'
+      + '<button class="' + btnCls + ' text-xs py-1.5 px-3" onclick="fetchSector(\'' + s.id + '\')" id="fetch-btn-' + s.id + '">' + btnTxt + '</button>'
+      + '</div>';
+  }).join('');
+}
+
+// --- Status log ---
+function logStatus(msg, type) {
+  document.getElementById('fetch-status').classList.remove('hidden');
+  var log = document.getElementById('status-log');
+  var color = type === 'error' ? '#DC2626' : type === 'success' ? '#0E6245' : 'inherit';
+  log.innerHTML += '<div style="color:' + color + '">' + msg + '</div>';
+  log.scrollTop = log.scrollHeight;
+}
+function clearStatus() {
+  document.getElementById('status-log').innerHTML = '';
+  document.getElementById('fetch-status').classList.add('hidden');
+}
+
+// --- Utilities ---
+function fnSlug(t) { return t.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,''); }
+function fnDeepGet(o, path, def) {
+  if (!o) return def !== undefined ? def : null;
+  var keys = path.split('.'), v = o;
+  for (var i = 0; i < keys.length; i++) {
+    if (v && typeof v === 'object') v = v[keys[i]]; else return def !== undefined ? def : null;
+  }
+  return v !== undefined && v !== null ? v : (def !== undefined ? def : null);
+}
+
+// ===================================================================
+// Tracxn Browser Client
+// ===================================================================
+async function tracxnPost(endpoint, body) {
+  var apiKey = document.getElementById('api-key-input').value;
+  if (!apiKey) throw new Error('API key is required');
+  var resp = await fetch(TRACXN_API_BASE + '/' + endpoint, {
+    method: 'POST',
+    headers: { 'accesstoken': apiKey, 'Content-Type': 'application/json' },
+    body: JSON.stringify(body)
+  });
+  if (!resp.ok) {
+    var txt = ''; try { txt = await resp.text(); } catch(e) {}
+    throw new Error('Tracxn API error ' + resp.status + ': ' + txt.substring(0, 200));
+  }
+  return resp.json();
+}
+
+async function tracxnFetchCompanies(feedName, limit) {
+  var results = [], offset = 0, pageSize = 20;
+  while (results.length < limit) {
+    var batchSize = Math.min(pageSize, limit - results.length);
+    logStatus('Fetching companies ' + (offset + 1) + '\u2013' + (offset + batchSize) + '...');
+    var data = await tracxnPost('companies', {
+      filter: { feedName: [feedName] }, size: batchSize, from: offset
+    });
+    var items = data.result || data.items || [];
+    if (typeof items === 'object' && !Array.isArray(items)) items = items.items || [];
+    if (!items.length) break;
+    results = results.concat(items);
+    offset += items.length;
+    if (items.length < batchSize) break;
+  }
+  return results.slice(0, limit);
+}
+
+// ===================================================================
+// Data Normalization
+// ===================================================================
+function normalizeRawCompany(raw) {
+  var name = raw.name || raw.companyName || 'Unknown';
+  var valuation = fnDeepGet(raw, 'latestValuation.amount.USD.value')
+    || (typeof raw.valuation === 'number' ? raw.valuation : null)
+    || (typeof raw.latestValuation === 'number' ? raw.latestValuation : null);
+  var funding = fnDeepGet(raw, 'totalEquityFunding.amount.USD.value')
+    || fnDeepGet(raw, 'totalFunding.amount.USD.value')
+    || raw.totalFundingAmountUSD || raw.totalFunding || raw.totalFundingAmount;
+  var city = raw.hqCity || raw.city || 'Unknown';
+  var country = raw.hqCountry || raw.country || 'India';
+  var people = raw.people || raw.founders || raw.keyPeople || [];
+  var founderNames = [];
+  (Array.isArray(people) ? people : []).forEach(function(p) {
+    var pn = typeof p === 'object' ? (p.name || p.fullName || '') : String(p);
+    if (pn) founderNames.push(pn);
+  });
+  var companySlug = fnSlug(name);
+  return {
+    id: companySlug, name: name, city: city, country: country,
+    valuation: valuation ? parseInt(valuation) : null,
+    funding: funding ? parseInt(funding) : null,
+    founded: (raw.foundedYear || raw.yearFounded) ? parseInt(raw.foundedYear || raw.yearFounded) : null,
+    founderNames: founderNames,
+    founderSlugs: founderNames.map(function(n) { return fnSlug(n + '-' + companySlug); }),
+    rawPeople: people
+  };
+}
+
+function normalizeRawFounder(rawPerson, companyName, companySlug) {
+  var name = typeof rawPerson === 'object' ? (rawPerson.name || rawPerson.fullName || 'Unknown') : String(rawPerson);
+  var education = [];
+  (rawPerson.education || []).forEach(function(ed) {
+    if (typeof ed === 'object') {
+      education.push({ institution: ed.institution || ed.school || '', degree: ed.degree || '', field: ed.field || ed.fieldOfStudy || '', year: ed.year || ed.endYear || null });
+    } else if (typeof ed === 'string') { education.push({ institution: ed, degree: '', field: '', year: null }); }
+  });
+  var work = [];
+  (rawPerson.workExperience || rawPerson.experience || []).forEach(function(w) {
+    if (typeof w === 'object') {
+      work.push({ company: w.company || w.organization || '', role: w.role || w.title || '' });
+    } else if (typeof w === 'string') { work.push({ company: w, role: '' }); }
+  });
+  return { id: fnSlug(name + '-' + companySlug), name: name, company: companyName, companySlug: companySlug, education: education, work: work, verified: false };
+}
+
+// ===================================================================
+// Client-side Network Analysis
+// ===================================================================
+function fnAddEdge(adj, weights, a, b, w) {
+  if (a === b) return;
+  if (!adj[a]) adj[a] = []; if (!adj[b]) adj[b] = [];
+  if (adj[a].indexOf(b) === -1) adj[a].push(b);
+  if (adj[b].indexOf(a) === -1) adj[b].push(a);
+  var key = a < b ? a + '|' + b : b + '|' + a;
+  weights[key] = Math.max(weights[key] || 0, w);
+}
+
+function buildGraph(companies, founders) {
+  var adj = {}, weights = {}, founderSet = {};
+  founders.forEach(function(f) { adj[f.id] = adj[f.id] || []; founderSet[f.id] = true; });
+
+  // Co-founder edges (weight 3.0)
+  companies.forEach(function(c) {
+    for (var i = 0; i < c.founderSlugs.length; i++) {
+      for (var j = i + 1; j < c.founderSlugs.length; j++) {
+        if (founderSet[c.founderSlugs[i]] && founderSet[c.founderSlugs[j]])
+          fnAddEdge(adj, weights, c.founderSlugs[i], c.founderSlugs[j], 3.0);
+      }
+    }
+  });
+
+  // Same education edges (weight 1.0)
+  var eduMap = {};
+  founders.forEach(function(f) {
+    f.education.forEach(function(e) {
+      var inst = (e.institution || '').trim();
+      if (inst) (eduMap[inst] = eduMap[inst] || []).push(f.id);
+    });
+  });
+  Object.keys(eduMap).forEach(function(inst) {
+    var fids = eduMap[inst];
+    for (var i = 0; i < fids.length; i++)
+      for (var j = i + 1; j < fids.length; j++)
+        fnAddEdge(adj, weights, fids[i], fids[j], 1.0);
+  });
+
+  // Same employer edges (weight 1.5)
+  var empMap = {};
+  founders.forEach(function(f) {
+    f.work.forEach(function(w) {
+      var co = (w.company || '').trim();
+      if (co) (empMap[co] = empMap[co] || []).push(f.id);
+    });
+  });
+  Object.keys(empMap).forEach(function(emp) {
+    var fids = empMap[emp];
+    for (var i = 0; i < fids.length; i++)
+      for (var j = i + 1; j < fids.length; j++)
+        fnAddEdge(adj, weights, fids[i], fids[j], 1.5);
+  });
+
+  var edgeCount = Object.keys(weights).length;
+  return { adj: adj, weights: weights, edgeCount: edgeCount };
+}
+
+function computeEduHubs(founders, topN) {
+  var counts = {};
+  founders.forEach(function(f) {
+    f.education.forEach(function(e) {
+      var inst = (e.institution || '').trim();
+      if (inst) counts[inst] = (counts[inst] || 0) + 1;
+    });
+  });
+  return Object.keys(counts)
+    .map(function(k) { return { institution: k, founder_count: counts[k] }; })
+    .sort(function(a, b) { return b.founder_count - a.founder_count; })
+    .slice(0, topN || 15);
+}
+
+function computeEmpPipes(founders, topN) {
+  var counts = {};
+  founders.forEach(function(f) {
+    f.work.forEach(function(w) {
+      var co = (w.company || '').trim();
+      if (co) counts[co] = (counts[co] || 0) + 1;
+    });
+  });
+  return Object.keys(counts)
+    .map(function(k) { return { employer: k, founder_count: counts[k] }; })
+    .sort(function(a, b) { return b.founder_count - a.founder_count; })
+    .slice(0, topN || 15);
+}
+
+function computeBetweenness(adj, nodeIds) {
+  var cb = {};
+  nodeIds.forEach(function(n) { cb[n] = 0; });
+  nodeIds.forEach(function(s) {
+    var stack = [], pred = {}, sigma = {}, dist = {}, delta = {};
+    nodeIds.forEach(function(n) { pred[n] = []; sigma[n] = 0; dist[n] = -1; delta[n] = 0; });
+    sigma[s] = 1; dist[s] = 0;
+    var queue = [s];
+    while (queue.length) {
+      var v = queue.shift(); stack.push(v);
+      (adj[v] || []).forEach(function(w) {
+        if (dist[w] < 0) { queue.push(w); dist[w] = dist[v] + 1; }
+        if (dist[w] === dist[v] + 1) { sigma[w] += sigma[v]; pred[w].push(v); }
+      });
+    }
+    while (stack.length) {
+      var w = stack.pop();
+      pred[w].forEach(function(v) { if (sigma[w] > 0) delta[v] += (sigma[v] / sigma[w]) * (1 + delta[w]); });
+      if (w !== s) cb[w] += delta[w];
+    }
+  });
+  var n = nodeIds.length;
+  if (n > 2) {
+    var norm = 2.0 / ((n - 1) * (n - 2));
+    nodeIds.forEach(function(v) { cb[v] = Math.round(cb[v] * norm * 10000) / 10000; });
+  }
+  return cb;
+}
+
+function detectCommunities(adj, weights, nodeIds, minSize) {
+  if (!nodeIds.length) return [];
+  var labels = {};
+  nodeIds.forEach(function(n, i) { labels[n] = i; });
+  var changed = true, maxIter = 50, iter = 0;
+  while (changed && iter < maxIter) {
+    changed = false; iter++;
+    var shuffled = nodeIds.slice().sort(function() { return Math.random() - 0.5; });
+    shuffled.forEach(function(node) {
+      var neighbors = adj[node] || [];
+      if (!neighbors.length) return;
+      var votes = {};
+      neighbors.forEach(function(nb) {
+        var key = node < nb ? node + '|' + nb : nb + '|' + node;
+        var w = weights[key] || 1;
+        votes[labels[nb]] = (votes[labels[nb]] || 0) + w;
+      });
+      var bestLabel = labels[node], bestVote = -1;
+      Object.keys(votes).forEach(function(l) {
+        var lnum = parseInt(l);
+        if (votes[l] > bestVote || (votes[l] === bestVote && lnum < bestLabel)) { bestVote = votes[l]; bestLabel = lnum; }
+      });
+      if (bestLabel !== labels[node]) { labels[node] = bestLabel; changed = true; }
+    });
+  }
+  var groups = {};
+  nodeIds.forEach(function(n) { (groups[labels[n]] = groups[labels[n]] || []).push(n); });
+  return Object.keys(groups)
+    .map(function(l) { return groups[l]; })
+    .filter(function(g) { return g.length >= (minSize || 3); })
+    .sort(function(a, b) { return b.length - a.length; });
+}
+
+function computeFlows(founders) {
+  var flowMap = {};
+  founders.forEach(function(f) {
+    if (!f.work.length) return;
+    f.work.forEach(function(w) {
+      var emp = (w.company || '').trim();
+      if (!emp) return;
+      var key = emp + '\u2192' + f.company;
+      if (!flowMap[key]) flowMap[key] = { from: emp, to: f.company, founders: [] };
+      flowMap[key].founders.push(f.name);
+    });
+  });
+  return Object.values(flowMap)
+    .filter(function(f) { return f.founders.length >= 2; })
+    .sort(function(a, b) { return b.founders.length - a.founders.length; })
+    .map(function(f) { return { from_employer: f.from, to_company: f.to, founders: f.founders, count: f.founders.length }; });
+}
+
+function computeGeo(companies) {
+  var counts = {};
+  companies.forEach(function(c) { counts[c.city || 'Unknown'] = (counts[c.city || 'Unknown'] || 0) + 1; });
+  var total = companies.length || 1;
+  return Object.keys(counts)
+    .map(function(k) { return { city: k, count: counts[k], pct: Math.round(counts[k] / total * 1000) / 10 }; })
+    .sort(function(a, b) { return b.count - a.count; });
+}
+
+function buildMatrix(founders) {
+  return founders.map(function(f) {
+    var eduStr = f.education.map(function(e) {
+      var parts = [e.institution]; if (e.degree) parts.push(e.degree); if (e.year) parts.push(String(e.year));
+      return parts.join(' ');
+    }).join(', ') || '\u2014';
+    var workStr = f.work.map(function(w) { return w.company; }).filter(Boolean).join(', ') || '\u2014';
+    return { name: f.name, company: f.company, edu: eduStr, work: workStr, tags: [], verified: false };
+  });
+}
+
+function generateInsightsFromAnalysis(data) {
+  var ins = [];
+  (data.clusters || []).forEach(function(c, i) {
+    var title = (c.dominant_context && c.dominant_context.length)
+      ? c.dominant_context[0].entity + ' Cluster (' + c.size + ' founders)'
+      : 'Cluster ' + (i + 1) + ' (' + c.size + ' founders)';
+    ins.push({ category: 'cluster', title: title, detail: 'Tight cluster of ' + c.size + ' founders detected via community analysis.', score: c.size * 2 });
+  });
+  (data.centrality || []).slice(0, 5).forEach(function(c) {
+    ins.push({ category: 'bridge_founder', title: c.name + ' \u2014 Network Connector', detail: c.name + ' has betweenness centrality ' + c.centrality + ', bridging multiple networks.', score: c.centrality * 100 });
+  });
+  (data.employer_pipes || []).slice(0, 4).forEach(function(e) {
+    ins.push({ category: 'employer_pipeline', title: e.employer + ' Alumni Mafia', detail: e.employer + ' spawned ' + e.founder_count + ' founders.', score: e.founder_count * 1.5 });
+  });
+  (data.edu_hubs || []).slice(0, 3).forEach(function(e) {
+    ins.push({ category: 'education_hub', title: e.institution + ' Founder Factory', detail: e.institution + ' produced ' + e.founder_count + ' founders.', score: e.founder_count });
+  });
+  (data.flows || []).slice(0, 5).forEach(function(f) {
+    ins.push({ category: 'talent_flow', title: f.from_employer + ' \u2192 ' + f.to_company, detail: f.count + ' founders moved from ' + f.from_employer + ' to found ' + f.to_company + ': ' + f.founders.join(', ') + '.', score: f.count * 2.5 });
+  });
+  return ins.sort(function(a, b) { return b.score - a.score; });
+}
+
+// ===================================================================
+// Fetch pipeline
+// ===================================================================
+var fetchInProgress = {};
+
+async function fetchSector(sectorId) {
+  if (fetchInProgress[sectorId]) return;
+  fetchInProgress[sectorId] = true;
+
+  var btn = document.getElementById('fetch-btn-' + sectorId);
+  if (btn) { btn.innerHTML = '<span class="material-symbols-outlined text-sm spin">progress_activity</span>'; btn.disabled = true; }
+  clearStatus();
+
+  try {
+    var apiKey = document.getElementById('api-key-input').value;
+    if (!apiKey) throw new Error('Please enter your Tracxn API key first.');
+    saveSetting('apiKey', apiKey);
+    saveValuationFromUI();
+
+    var feedName = TRACXN_SECTOR_MAP[sectorId];
+    if (!feedName) throw new Error('Unknown sector: ' + sectorId);
+
+    var valThreshold = getValuationThreshold();
+    logStatus('Sector: ' + feedName + ' | Valuation: $' + (valThreshold / 1000000) + 'M+');
+
+    // Fetch companies from Tracxn
+    var rawCompanies;
+    try {
+      rawCompanies = await tracxnFetchCompanies(feedName, 200);
+    } catch (err) {
+      if (err.message && (err.message.indexOf('Failed to fetch') >= 0 || err.message.indexOf('NetworkError') >= 0)) {
+        throw new Error('Network/CORS error: The Tracxn API may block browser requests. Try the Python pipeline (python run.py fetch) or a CORS proxy browser extension.');
+      }
+      throw err;
+    }
+    logStatus('Received ' + rawCompanies.length + ' companies from API');
+
+    // Normalize & filter by valuation
+    var companies = rawCompanies.map(normalizeRawCompany);
+    var preCount = companies.length;
+    companies = companies.filter(function(c) {
+      return c.valuation && c.valuation >= valThreshold;
+    });
+    logStatus('Valuation filter: ' + companies.length + ' of ' + preCount + ' companies above $' + (valThreshold / 1000000) + 'M');
+
+    // Fallback: use funding as proxy if no valuation data
+    if (!companies.length) {
+      logStatus('No valuation data found. Trying funding amount as proxy...');
+      companies = rawCompanies.map(normalizeRawCompany).filter(function(c) {
+        return (c.valuation && c.valuation >= valThreshold) || (c.funding && c.funding >= valThreshold / 2);
+      });
+      logStatus('Funding proxy: ' + companies.length + ' companies');
+    }
+    if (!companies.length) throw new Error('No companies match your criteria. Try lowering the valuation threshold.');
+
+    // Extract founders
+    logStatus('Extracting founders...');
+    var founders = [], seen = {};
+    companies.forEach(function(c) {
+      (Array.isArray(c.rawPeople) ? c.rawPeople : []).forEach(function(p) {
+        if (typeof p !== 'object') return;
+        var f = normalizeRawFounder(p, c.name, c.id);
+        if (!seen[f.id]) { seen[f.id] = true; founders.push(f); }
+      });
+    });
+    logStatus(founders.length + ' founders extracted');
+    if (!founders.length) logStatus('Note: No detailed founder data in API response. Company-level analysis still available.');
+
+    // Network analysis
+    logStatus('Building network graph...');
+    var graph = buildGraph(companies, founders);
+    logStatus('Graph: ' + graph.edgeCount + ' edges');
+
+    var nodeIds = founders.map(function(f) { return f.id; });
+    logStatus('Computing education hubs...');
+    var eduH = computeEduHubs(founders, 15);
+    logStatus('Computing employer pipelines...');
+    var empP = computeEmpPipes(founders, 15);
+
+    logStatus('Computing betweenness centrality...');
+    var cbMap = computeBetweenness(graph.adj, nodeIds);
+    var founderById = {};
+    founders.forEach(function(f) { founderById[f.id] = f; });
+    var centralityList = nodeIds
+      .map(function(id) { return { founder_id: id, name: founderById[id] ? founderById[id].name : id, centrality: cbMap[id] || 0 }; })
+      .filter(function(c) { return c.centrality > 0; })
+      .sort(function(a, b) { return b.centrality - a.centrality; })
+      .slice(0, 20);
+
+    logStatus('Detecting communities...');
+    var communityGroups = detectCommunities(graph.adj, graph.weights, nodeIds, 3);
+    var clusterData = communityGroups.map(function(group, i) {
+      var entityCounts = {};
+      group.forEach(function(fid) {
+        var f = founderById[fid]; if (!f) return;
+        f.education.forEach(function(e) { var inst = (e.institution||'').trim(); if (inst) entityCounts[inst] = (entityCounts[inst]||0)+1; });
+        f.work.forEach(function(w) { var co = (w.company||'').trim(); if (co) entityCounts[co] = (entityCounts[co]||0)+1; });
+      });
+      var context = Object.keys(entityCounts)
+        .map(function(e) { return { entity: e, count: entityCounts[e] }; })
+        .sort(function(a, b) { return b.count - a.count; }).slice(0, 3);
+      return {
+        cluster_id: i, size: group.length,
+        members: group.map(function(fid) { return founderById[fid] ? founderById[fid].name : fid; }),
+        dominant_context: context
+      };
+    });
+
+    logStatus('Computing talent flows...');
+    var flowsData = computeFlows(founders);
+    var geoData = computeGeo(companies);
+    var matData = buildMatrix(founders);
+
+    // Assemble sector data
+    var sectorMeta = SECTORS.find(function(s) { return s.id === sectorId; });
+    var displayName = sectorMeta ? sectorMeta.name : sectorId;
+    var entry = {
+      sector_name: 'Indian ' + displayName,
+      total_companies: companies.length,
+      total_founders: founders.length,
+      total_edges: graph.edgeCount,
+      num_clusters: clusterData.length,
+      edu_hubs: eduH, employer_pipes: empP, centrality: centralityList,
+      clusters: clusterData, flows: flowsData, geo: geoData, matrix: matData,
+      insights: []
+    };
+    entry.insights = generateInsightsFromAnalysis(entry);
+
+    // Inject into dashboard
+    SECTOR_DATA[sectorId] = entry;
+    SECTORS.forEach(function(s) { if (s.id === sectorId) s.has_data = true; });
+    renderSectorNav();
+    renderFetchSectorList();
+
+    logStatus('Done! ' + companies.length + ' companies, ' + founders.length + ' founders, ' + graph.edgeCount + ' edges, ' + clusterData.length + ' clusters.', 'success');
+
+    // Switch to the new sector
+    setTimeout(function() {
+      closeSettings();
+      currentSector = '';
+      switchSector(sectorId);
+    }, 800);
+
+  } catch (err) {
+    logStatus('Error: ' + err.message, 'error');
+  } finally {
+    fetchInProgress[sectorId] = false;
+    if (btn) {
+      btn.textContent = SECTOR_DATA[sectorId] ? 'Re-fetch' : 'Fetch';
+      btn.disabled = false;
+    }
+  }
+}
 </script>
 </body>
 </html>
