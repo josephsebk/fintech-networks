@@ -1,0 +1,44 @@
+# Sector configuration: Indian DeepTech
+# AI/ML, semiconductors, robotics, space-tech, quantum, biotech.
+
+name: "Indian DeepTech"
+sector: "DeepTech"
+country: "India"
+description: "Indian DeepTech startups — founder network mapping"
+
+filters:
+  min_funding: 5000000
+  founded_after: 2010
+  limit: 150
+  enrich_domains: false
+
+tracked_institutions:
+  - "IIT Bombay"
+  - "IIT Delhi"
+  - "IIT Madras"
+  - "IIT Kanpur"
+  - "IIT Kharagpur"
+  - "IISc Bangalore"
+  - "BITS Pilani"
+  - "IIM Ahmedabad"
+  - "IIIT Hyderabad"
+  - "CMU"
+  - "Stanford"
+  - "MIT"
+
+tracked_employers:
+  - "Google"
+  - "Microsoft"
+  - "ISRO"
+  - "DRDO"
+  - "Intel"
+  - "Qualcomm"
+  - "Samsung"
+  - "IBM"
+  - "NVIDIA"
+  - "Amazon"
+
+analysis:
+  min_cluster_size: 3
+  top_n_hubs: 15
+  top_n_bridges: 10

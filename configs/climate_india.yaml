@@ -1,0 +1,42 @@
+# Sector configuration: Indian Climate Tech
+# Clean energy, EV, carbon capture, agri-climate, water, waste management.
+
+name: "Indian Climate Tech"
+sector: "Climate Tech"
+country: "India"
+description: "Indian Climate Tech startups — founder network mapping"
+
+filters:
+  min_funding: 5000000
+  founded_after: 2010
+  limit: 150
+  enrich_domains: false
+
+tracked_institutions:
+  - "IIT Delhi"
+  - "IIT Bombay"
+  - "IIT Madras"
+  - "IIT Kanpur"
+  - "IISc Bangalore"
+  - "BITS Pilani"
+  - "IIM Ahmedabad"
+  - "IIM Bangalore"
+  - "TERI University"
+  - "IIT Roorkee"
+
+tracked_employers:
+  - "Tata Power"
+  - "Suzlon"
+  - "NTPC"
+  - "Reliance"
+  - "Adani Green"
+  - "McKinsey"
+  - "Google"
+  - "Tesla"
+  - "Shell"
+  - "Ola Electric"
+
+analysis:
+  min_cluster_size: 3
+  top_n_hubs: 15
+  top_n_bridges: 10

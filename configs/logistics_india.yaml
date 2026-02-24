@@ -1,0 +1,42 @@
+# Sector configuration: Indian Logistics
+# Supply chain, warehousing, last-mile, freight, fleet management.
+
+name: "Indian Logistics"
+sector: "Logistics"
+country: "India"
+description: "Indian Logistics startups — founder network mapping"
+
+filters:
+  min_funding: 10000000
+  founded_after: 2008
+  limit: 150
+  enrich_domains: false
+
+tracked_institutions:
+  - "IIT Delhi"
+  - "IIT Bombay"
+  - "IIT Kharagpur"
+  - "IIT Madras"
+  - "BITS Pilani"
+  - "IIM Ahmedabad"
+  - "IIM Bangalore"
+  - "IIM Calcutta"
+  - "ISB Hyderabad"
+  - "NIT Trichy"
+
+tracked_employers:
+  - "Flipkart"
+  - "Amazon"
+  - "Delhivery"
+  - "Blue Dart"
+  - "FedEx"
+  - "McKinsey"
+  - "Rivigo"
+  - "Uber"
+  - "Ola"
+  - "Maersk"
+
+analysis:
+  min_cluster_size: 3
+  top_n_hubs: 15
+  top_n_bridges: 10
