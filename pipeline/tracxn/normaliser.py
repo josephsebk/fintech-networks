@@ -1,9 +1,15 @@
 """
-Normalise raw Tracxn API responses into internal data models.
+Normalise raw Tracxn Playground API responses into internal data models.
 
-The Tracxn API returns nested JSON with varying field names depending
-on the endpoint.  This module maps that into our canonical Company /
-Founder / FundingRound models so downstream code never touches raw JSON.
+The Playground API returns nested JSON with field paths like:
+  - totalEquityFunding.amount.USD.value
+  - hqCity, hqCountry
+  - foundedYear (int)
+  - domain (list of strings)
+  - companySectors (list of sector objects)
+
+This module maps that into our canonical Company / Founder / FundingRound
+models so downstream code never touches raw JSON.
 """
 
 from __future__ import annotations
@@ -29,35 +35,88 @@ def _slug(text: str) -> str:
     return re.sub(r"[^a-z0-9]+", "-", text.lower()).strip("-")
 
 
+def _deep_get(d: dict, path: str, default: Any = None) -> Any:
+    """Safely traverse nested dicts via dot-separated path."""
+    keys = path.split(".")
+    for key in keys:
+        if isinstance(d, dict):
+            d = d.get(key, default)
+        else:
+            return default
+    return d
+
+
 # ------------------------------------------------------------------
 # Company normalisation
 # ------------------------------------------------------------------
 
 def normalise_company(raw: dict[str, Any]) -> Company:
-    """Map a raw Tracxn company dict to our Company model."""
+    """Map a raw Tracxn Playground company dict to our Company model."""
     name = raw.get("name") or raw.get("companyName") or "Unknown"
-    founded = raw.get("yearFounded") or raw.get("foundedYear")
+    founded = raw.get("foundedYear") or raw.get("yearFounded")
+
+    # Funding — Playground nests as totalEquityFunding.amount.USD.value
+    total_funding = (
+        _deep_get(raw, "totalEquityFunding.amount.USD.value")
+        or _deep_get(raw, "totalFunding.amount.USD.value")
+        or raw.get("totalFundingAmountUSD")
+        or raw.get("totalFunding")
+        or raw.get("totalFundingAmount")
+    )
+
+    # Valuation
+    valuation = (
+        _deep_get(raw, "latestValuation.amount.USD.value")
+        or raw.get("valuation")
+        or raw.get("latestValuation")
+    )
+
+    # Sector — Playground uses companySectors list
+    sector = ""
+    sectors_list = raw.get("companySectors", [])
+    if sectors_list and isinstance(sectors_list, list):
+        first = sectors_list[0]
+        if isinstance(first, dict):
+            sector = first.get("name", first.get("sectorName", ""))
+        elif isinstance(first, str):
+            sector = first
+    if not sector:
+        sector = raw.get("sector", raw.get("primarySector", ""))
+
+    # Domain — may be string or list
+    domain = raw.get("domain") or raw.get("website")
+    if isinstance(domain, list):
+        domain = domain[0] if domain else None
+
+    # City / country
+    city = raw.get("hqCity") or raw.get("city")
+    country = raw.get("hqCountry") or raw.get("country", "India")
 
     # Funding rounds
     rounds: list[FundingRound] = []
     for r in raw.get("fundingRounds", raw.get("rounds", [])):
+        amount = (
+            _deep_get(r, "amount.USD.value")
+            or r.get("amount")
+            or r.get("amountUSD")
+        )
         rounds.append(
             FundingRound(
                 round_type=r.get("roundType", r.get("type", "unknown")),
-                amount_usd=r.get("amount", r.get("amountUSD")),
-                date=r.get("date", r.get("announcedDate")),
+                amount_usd=int(amount) if amount else None,
+                date=r.get("date") or r.get("announcedDate"),
                 investors=[
-                    inv.get("name", inv) if isinstance(inv, dict) else inv
+                    inv.get("name", inv) if isinstance(inv, dict) else str(inv)
                     for inv in r.get("investors", [])
                 ],
             )
         )
 
-    # Founder references (just names at this stage)
+    # Founder / people references
     founder_names: list[str] = []
-    for p in raw.get("people", raw.get("founders", [])):
+    for p in raw.get("people", raw.get("founders", raw.get("keyPeople", []))):
         if isinstance(p, dict):
-            pname = p.get("name", p.get("fullName", ""))
+            pname = p.get("name") or p.get("fullName", "")
         else:
             pname = str(p)
         if pname:
@@ -66,16 +125,14 @@ def normalise_company(raw: dict[str, Any]) -> Company:
     return Company(
         id=_slug(name),
         name=name,
-        domain=raw.get("domain") or raw.get("website"),
-        sector=raw.get("sector", raw.get("primarySector", "")),
+        domain=domain,
+        sector=sector,
         sub_sector=raw.get("subSector"),
-        city=raw.get("city") or raw.get("hqCity"),
-        country=raw.get("country") or raw.get("hqCountry", "India"),
+        city=city,
+        country=country,
         founded_year=int(founded) if founded else None,
-        total_funding_usd=raw.get("totalFundingAmountUSD")
-        or raw.get("totalFunding")
-        or raw.get("totalFundingAmount"),
-        valuation_usd=raw.get("valuation") or raw.get("latestValuation"),
+        total_funding_usd=int(total_funding) if total_funding else None,
+        valuation_usd=int(valuation) if valuation else None,
         employee_count=raw.get("employeeCount"),
         founders=[_slug(n) for n in founder_names],
         funding_rounds=rounds,

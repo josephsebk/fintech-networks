@@ -1,13 +1,19 @@
 """
-Tracxn API client.
+Tracxn Playground API client.
 
-Wraps the Tracxn REST API (v2.2) for company, founder, investor,
+Wraps the Tracxn REST API v2.2 Playground for company, founder, investor,
 and transaction data retrieval.  Handles auth, pagination, rate-limit
 back-off, and response normalisation.
 
-Requires a TRACXN_ACCESS_TOKEN environment variable (or pass token directly).
-API docs are gated — endpoint signatures here are derived from the
-community MCP servers and Tracxn's public descriptions.
+Playground API specifics (derived from the MCP server reference impl):
+  - Base URL:    https://platform.tracxn.com/api/2.2/playground
+  - Auth header: accesstoken (lowercase)
+  - Pagination:  {"size": 20, "from": 0}  (max 20 per page)
+  - Filters:     {"filter": {"feedName": ["FinTech"], ...}}
+  - Endpoints:   companies, transactions, investors,
+                 acquisitiontransactions, practiceareas, feeds, businessmodels
+
+Requires TRACXN_ACCESS_TOKEN env var (or pass token directly).
 """
 
 from __future__ import annotations
@@ -23,7 +29,7 @@ from dotenv import load_dotenv
 load_dotenv()
 log = logging.getLogger(__name__)
 
-DEFAULT_BASE = "https://platform.tracxn.com/api/2.2"
+PLAYGROUND_BASE = "https://platform.tracxn.com/api/2.2/playground"
 MAX_PER_PAGE = 20  # Tracxn hard limit
 
 
@@ -37,7 +43,7 @@ class TracxnAPIError(Exception):
 
 
 class TracxnClient:
-    """Thin wrapper around the Tracxn REST API."""
+    """Thin wrapper around the Tracxn Playground REST API v2.2."""
 
     def __init__(
         self,
@@ -51,12 +57,14 @@ class TracxnClient:
                 "Tracxn access token required. Set TRACXN_ACCESS_TOKEN "
                 "in your environment or pass token= to TracxnClient()."
             )
-        self.base = (base_url or os.getenv("TRACXN_API_BASE", DEFAULT_BASE)).rstrip("/")
+        self.base = (
+            base_url or os.getenv("TRACXN_API_BASE", PLAYGROUND_BASE)
+        ).rstrip("/")
         self.max_retries = max_retries
         self._session = requests.Session()
         self._session.headers.update(
             {
-                "accessToken": self.token,
+                "accesstoken": self.token,  # lowercase per Playground spec
                 "Content-Type": "application/json",
             }
         )
@@ -70,6 +78,7 @@ class TracxnClient:
         attempt = 0
         while True:
             try:
+                log.debug("→ %s %s", method, url)
                 resp = self._session.request(method, url, **kwargs)
             except requests.RequestException as exc:
                 attempt += 1
@@ -101,25 +110,32 @@ class TracxnClient:
         return self._request("GET", path, params=params)
 
     # ------------------------------------------------------------------
-    # Pagination helper
+    # Pagination helper (Playground uses "size" / "from")
     # ------------------------------------------------------------------
 
     def _paginate(self, path: str, payload: dict, limit: int = 100) -> list[dict]:
         """Fetch up to *limit* results, handling Tracxn's 20-per-page cap."""
         results: list[dict] = []
-        offset = payload.get("offset", 0)
+        offset = payload.get("from", 0)
         while len(results) < limit:
             batch_size = min(MAX_PER_PAGE, limit - len(results))
-            payload["limit"] = batch_size
-            payload["offset"] = offset
+            payload["size"] = batch_size
+            payload["from"] = offset
             data = self._post(path, payload)
+
+            # Response may nest items under "result", "items", or at top level
             items = data.get("result", data.get("items", []))
+            if isinstance(items, dict):
+                # Some endpoints return {"result": {"items": [...]}}
+                items = items.get("items", [])
             if not items:
                 break
+
             results.extend(items)
             offset += len(items)
             if len(items) < batch_size:
-                break
+                break  # last page
+
         return results[:limit]
 
     # ------------------------------------------------------------------
@@ -138,10 +154,14 @@ class TracxnClient:
         founded_before: int | None = None,
         limit: int = 100,
     ) -> list[dict]:
-        """Search companies with filters.  Returns list of company dicts."""
+        """
+        Search companies with filters.
+
+        Playground uses "feedName" (list) for sector filtering.
+        """
         filters: dict[str, Any] = {}
         if sector:
-            filters["sector"] = sector
+            filters["feedName"] = [sector]
         if city:
             filters["city"] = city
         if country:
@@ -162,19 +182,23 @@ class TracxnClient:
             filters["yearFounded"] = year_range
 
         payload: dict[str, Any] = {"filter": filters}
-        return self._paginate("companies/search", payload, limit=limit)
+        return self._paginate("companies", payload, limit=limit)
 
     def search_companies_by_name(self, name: str, limit: int = 20) -> list[dict]:
         """Name-based company search."""
         return self._paginate(
-            "companies/search",
+            "companies",
             {"filter": {"name": name}},
             limit=limit,
         )
 
     def company_lookup(self, domain: str) -> dict:
-        """Lookup a specific company by its website domain."""
-        return self._post("companies/lookup", {"domain": domain})
+        """
+        Lookup a specific company by its website domain.
+
+        Domain should be bare (e.g. "razorpay.com", not "https://razorpay.com").
+        """
+        return self._post("companies", {"filter": {"domain": [domain]}})
 
     def get_funded_companies(
         self,
@@ -190,8 +214,8 @@ class TracxnClient:
         if max_amount:
             filters["totalFundingAmount"]["max"] = max_amount
         if sector:
-            filters["sector"] = sector
-        return self._paginate("companies/search", {"filter": filters}, limit=limit)
+            filters["feedName"] = [sector]
+        return self._paginate("companies", {"filter": filters}, limit=limit)
 
     # ------------------------------------------------------------------
     # Transaction / funding endpoints
@@ -219,7 +243,7 @@ class TracxnClient:
             if max_amount is not None:
                 amt["max"] = max_amount
             filters["amount"] = amt
-        return self._paginate("transactions/search", {"filter": filters}, limit=limit)
+        return self._paginate("transactions", {"filter": filters}, limit=limit)
 
     # ------------------------------------------------------------------
     # Investor endpoints
@@ -238,7 +262,7 @@ class TracxnClient:
             filters["name"] = name
         if investor_type:
             filters["type"] = investor_type
-        return self._paginate("investors/search", {"filter": filters}, limit=limit)
+        return self._paginate("investors", {"filter": filters}, limit=limit)
 
     # ------------------------------------------------------------------
     # Acquisitions
@@ -257,16 +281,26 @@ class TracxnClient:
             filters["acquirerName"] = acquirer
         if target:
             filters["targetName"] = target
-        return self._paginate("acquisitions/search", {"filter": filters}, limit=limit)
+        return self._paginate(
+            "acquisitiontransactions", {"filter": filters}, limit=limit
+        )
 
     # ------------------------------------------------------------------
-    # Practice areas / business models
+    # Taxonomy: practice areas, feeds, business models
     # ------------------------------------------------------------------
 
     def search_practice_areas(self, query: str, limit: int = 20) -> list[dict]:
         """Search Tracxn's practice area taxonomy."""
         return self._paginate(
-            "practiceAreas/search",
+            "practiceareas",
+            {"filter": {"name": query}},
+            limit=limit,
+        )
+
+    def search_feeds(self, query: str, limit: int = 20) -> list[dict]:
+        """Search Tracxn feed names (their sector taxonomy)."""
+        return self._paginate(
+            "feeds",
             {"filter": {"name": query}},
             limit=limit,
         )
@@ -274,7 +308,7 @@ class TracxnClient:
     def search_business_models(self, query: str, limit: int = 20) -> list[dict]:
         """Search business model classifications."""
         return self._paginate(
-            "businessModels/search",
+            "businessmodels",
             {"filter": {"name": query}},
             limit=limit,
         )
